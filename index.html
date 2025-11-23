@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planification Instagram</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://apis.google.com/js/api.js"></script>
     <style>
         * {
             margin: 0;
@@ -623,115 +621,6 @@
             font-size: 1.3rem;
             margin-bottom: 1rem;
         }
-
-        /* Google Drive Sync */
-        .sync-status {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: var(--card);
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.9rem;
-            z-index: 999;
-            transition: all 0.3s ease;
-        }
-
-        .sync-status.synced {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .sync-status.syncing {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .sync-status.error {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .sync-status.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .google-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            background: white;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Work Sans', sans-serif;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .google-btn:hover {
-            border-color: var(--primary);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .google-btn.connected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .sync-icon {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .config-input {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        .config-input input {
-            flex: 1;
-            padding: 0.4rem 0.6rem;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-
-        .config-input button {
-            padding: 0.4rem 0.8rem;
-            background: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-        .config-input button:hover {
-            background: #a07d57;
-        }
-
-        .drive-file-info {
-            margin-top: 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text-light);
-            font-style: italic;
-        }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -817,24 +706,7 @@
         <header>
             <h1>Planification Instagram</h1>
             <p class="subtitle">Organise tes contenus avec fluidité</p>
-            <div style="margin-top: 1rem;">
-                <button id="google-auth-btn" class="google-btn" onclick="toggleGoogleAuth()">
-                    <span>📁</span>
-                    <span id="google-auth-text">Connecter Google Drive</span>
-                </button>
-                <div id="drive-config" class="config-input" style="display: none;">
-                    <input type="text" id="drive-file-id" placeholder="Coller l'ID du fichier Google Drive...">
-                    <button onclick="setDriveFileId()">Connecter</button>
-                </div>
-                <div id="drive-file-info" class="drive-file-info" style="display: none;"></div>
-            </div>
         </header>
-
-        <!-- Sync Status Indicator -->
-        <div id="sync-status" class="sync-status hidden">
-            <span id="sync-icon">💾</span>
-            <span id="sync-text">Synchronisé</span>
-        </div>
 
         <div class="tabs">
             <button class="tab active" data-view="calendar">Calendrier</button>
@@ -979,279 +851,6 @@
         let currentDate = new Date();
         let currentFilter = 'all';
 
-        // Google Drive Configuration
-        const GOOGLE_CONFIG = {
-            CLIENT_ID: 'VOTRE_CLIENT_ID_ICI.apps.googleusercontent.com',
-            API_KEY: 'VOTRE_API_KEY_ICI',
-            DISCOVERY_DOCS: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-            SCOPES: 'https://www.googleapis.com/auth/drive.file'
-        };
-
-        let googleDriveEnabled = false;
-        let gapiInitialized = false;
-        let tokenClient;
-        let accessToken = null;
-        let driveFileId = null;
-        let googleAuthenticated = false;
-
-        // Initialize Google Drive API
-        function initGoogleDrive() {
-            gapi.load('client', async () => {
-                await gapi.client.init({
-                    apiKey: GOOGLE_CONFIG.API_KEY,
-                    discoveryDocs: GOOGLE_CONFIG.DISCOVERY_DOCS,
-                });
-                gapiInitialized = true;
-
-                // Check if we have a saved token
-                const savedToken = localStorage.getItem('googleAccessToken');
-                const savedFileId = localStorage.getItem('driveFileId');
-                if (savedToken) {
-                    accessToken = savedToken;
-                    gapi.client.setToken({ access_token: savedToken });
-                    googleAuthenticated = true;
-                    updateAuthButton(true);
-
-                    if (savedFileId) {
-                        driveFileId = savedFileId;
-                        googleDriveEnabled = true;
-                        showDriveFileInfo();
-                        await loadFromDrive();
-                    } else {
-                        showDriveConfig();
-                    }
-                }
-            });
-
-            // Initialize token client
-            tokenClient = google.accounts.oauth2.initTokenClient({
-                client_id: GOOGLE_CONFIG.CLIENT_ID,
-                scope: GOOGLE_CONFIG.SCOPES,
-                callback: async (response) => {
-                    if (response.access_token) {
-                        accessToken = response.access_token;
-                        localStorage.setItem('googleAccessToken', accessToken);
-                        googleAuthenticated = true;
-                        updateAuthButton(true);
-                        showDriveConfig();
-                        showSyncStatus('synced', 'Connecté à Google - Configure ton fichier Drive');
-                    }
-                },
-            });
-        }
-
-        // Show Drive file configuration input
-        function showDriveConfig() {
-            document.getElementById('drive-config').style.display = 'flex';
-            document.getElementById('drive-file-info').style.display = 'none';
-        }
-
-        // Show Drive file info
-        function showDriveFileInfo() {
-            document.getElementById('drive-config').style.display = 'none';
-            document.getElementById('drive-file-info').style.display = 'block';
-            document.getElementById('drive-file-info').innerHTML =
-                `📄 Fichier connecté: <strong>${driveFileId.substring(0, 20)}...</strong>
-                <a href="#" onclick="changeDriveFile(); return false;" style="color: var(--accent); margin-left: 0.5rem;">Changer</a>`;
-        }
-
-        // Set Drive file ID
-        async function setDriveFileId() {
-            const fileIdInput = document.getElementById('drive-file-id').value.trim();
-
-            if (!fileIdInput) {
-                alert('Entre l\'ID de ton fichier Google Drive');
-                return;
-            }
-
-            // Extract file ID from URL if a full URL was pasted
-            let fileId = fileIdInput;
-            if (fileIdInput.includes('drive.google.com')) {
-                const match = fileIdInput.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (match) {
-                    fileId = match[1];
-                } else {
-                    alert('URL invalide. Utilise un lien au format: https://drive.google.com/file/d/VOTRE_ID/...');
-                    return;
-                }
-            }
-
-            driveFileId = fileId;
-            localStorage.setItem('driveFileId', driveFileId);
-            googleDriveEnabled = true;
-            showDriveFileInfo();
-            await loadFromDrive();
-        }
-
-        // Change Drive file
-        function changeDriveFile() {
-            googleDriveEnabled = false;
-            driveFileId = null;
-            localStorage.removeItem('driveFileId');
-            document.getElementById('drive-file-id').value = '';
-            showDriveConfig();
-        }
-
-        // Toggle Google Authentication
-        async function toggleGoogleAuth() {
-            if (googleAuthenticated) {
-                // Disconnect
-                googleDriveEnabled = false;
-                googleAuthenticated = false;
-                accessToken = null;
-                driveFileId = null;
-                localStorage.removeItem('googleAccessToken');
-                localStorage.removeItem('driveFileId');
-                gapi.client.setToken(null);
-                updateAuthButton(false);
-                document.getElementById('drive-config').style.display = 'none';
-                document.getElementById('drive-file-info').style.display = 'none';
-                showSyncStatus('error', 'Déconnecté de Google Drive', 3000);
-            } else {
-                // Connect
-                if (!gapiInitialized) {
-                    alert('Google Drive se charge... Essaie dans quelques secondes.');
-                    return;
-                }
-                tokenClient.requestAccessToken();
-            }
-        }
-
-        // Update auth button UI
-        function updateAuthButton(connected) {
-            const btn = document.getElementById('google-auth-btn');
-            const text = document.getElementById('google-auth-text');
-            if (connected) {
-                btn.classList.add('connected');
-                text.textContent = '✓ Google Drive';
-            } else {
-                btn.classList.remove('connected');
-                text.textContent = 'Connecter Google Drive';
-            }
-        }
-
-        // Show sync status
-        function showSyncStatus(status, message, duration = 2000) {
-            const statusEl = document.getElementById('sync-status');
-            const iconEl = document.getElementById('sync-icon');
-            const textEl = document.getElementById('sync-text');
-
-            statusEl.className = 'sync-status ' + status;
-            textEl.textContent = message;
-
-            if (status === 'syncing') {
-                iconEl.innerHTML = '<span class="sync-icon">⟳</span>';
-            } else if (status === 'synced') {
-                iconEl.textContent = '✓';
-            } else if (status === 'error') {
-                iconEl.textContent = '⚠️';
-            }
-
-            if (duration) {
-                setTimeout(() => {
-                    statusEl.classList.add('hidden');
-                }, duration);
-            }
-        }
-
-        // Load data from Google Drive
-        async function loadFromDrive() {
-            if (!googleDriveEnabled || !gapiInitialized || !driveFileId) return;
-
-            try {
-                showSyncStatus('syncing', 'Chargement...');
-
-                // Get file metadata
-                const metadataResponse = await gapi.client.drive.files.get({
-                    fileId: driveFileId,
-                    fields: 'id, name, modifiedTime',
-                });
-
-                // Download file content
-                const fileResponse = await gapi.client.drive.files.get({
-                    fileId: driveFileId,
-                    alt: 'media',
-                });
-
-                if (fileResponse.body) {
-                    const driveData = JSON.parse(fileResponse.body);
-
-                    // Check if Drive data is newer than local
-                    const localTimestamp = localStorage.getItem('lastSaveTime') || 0;
-                    const driveTimestamp = new Date(metadataResponse.result.modifiedTime).getTime();
-
-                    if (driveTimestamp > localTimestamp || !localStorage.getItem('instaPlannerData')) {
-                        data = driveData;
-                        localStorage.setItem('instaPlannerData', JSON.stringify(data));
-                        localStorage.setItem('lastSaveTime', driveTimestamp);
-                        renderCalendar();
-                        renderList();
-                        renderThemes();
-                        updateThemeSelects();
-                        updateThemeFilters();
-                        showSyncStatus('synced', 'Données chargées depuis Drive');
-                    } else {
-                        showSyncStatus('synced', 'Données à jour');
-                    }
-                }
-            } catch (error) {
-                console.error('Erreur lors du chargement depuis Drive:', error);
-                if (error.status === 404) {
-                    showSyncStatus('error', 'Fichier introuvable. Vérifie l\'ID.', 4000);
-                } else if (error.status === 403) {
-                    showSyncStatus('error', 'Accès refusé. Vérifie les permissions.', 4000);
-                } else {
-                    showSyncStatus('error', 'Erreur de chargement', 3000);
-                }
-            }
-        }
-
-        // Save data to Google Drive
-        async function saveToDrive() {
-            if (!googleDriveEnabled || !gapiInitialized || !driveFileId) return;
-
-            try {
-                showSyncStatus('syncing', 'Sauvegarde...');
-
-                const content = JSON.stringify(data, null, 2);
-                const file = new Blob([content], { type: 'application/json' });
-                const metadata = {
-                    mimeType: 'application/json',
-                };
-
-                const form = new FormData();
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', file);
-
-                // Always update the existing file (never create)
-                const response = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                    },
-                    body: form,
-                });
-
-                if (response.ok) {
-                    localStorage.setItem('lastSaveTime', Date.now());
-                    showSyncStatus('synced', 'Sauvegardé sur Drive');
-                } else {
-                    const errorData = await response.json();
-                    console.error('Erreur sauvegarde:', errorData);
-                    if (response.status === 404) {
-                        showSyncStatus('error', 'Fichier introuvable. Vérifie l\'ID.', 4000);
-                    } else if (response.status === 403) {
-                        showSyncStatus('error', 'Accès refusé. Vérifie les permissions.', 4000);
-                    } else {
-                        throw new Error('Erreur de sauvegarde');
-                    }
-                }
-            } catch (error) {
-                console.error('Erreur lors de la sauvegarde sur Drive:', error);
-                showSyncStatus('error', 'Erreur de sauvegarde', 3000);
-            }
-        }
-
         // Load data from localStorage
         function loadData() {
             const saved = localStorage.getItem('instaPlannerData');
@@ -1260,15 +859,9 @@
             }
         }
 
-        // Save data to localStorage and Google Drive
+        // Save data to localStorage
         function saveData() {
             localStorage.setItem('instaPlannerData', JSON.stringify(data));
-            localStorage.setItem('lastSaveTime', Date.now());
-
-            // Also save to Google Drive if enabled
-            if (googleDriveEnabled) {
-                saveToDrive();
-            }
         }
 
         // Initialize
@@ -1279,10 +872,7 @@
             renderThemes();
             updateThemeSelects();
             updateThemeFilters();
-
-            // Initialize Google Drive
-            initGoogleDrive();
-
+            
             // Tab switching
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
