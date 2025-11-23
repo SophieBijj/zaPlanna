@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planification Instagram</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2d5f4f;
+            --secondary: #b8926a;
+            --accent: #d4756e;
+            --bg: #f8f6f3;
+            --card: #ffffff;
+            --text: #2a2a2a;
+            --text-light: #6a6a6a;
+            --border: #e5e1db;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, #f8f6f3 0%, #efe9e0 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 300;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            animation: slideDown 0.5s ease;
+        }
+
+        .tab {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        /* Calendrier */
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #1e4436;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(45, 95, 79, 0.2);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background: #a07d57;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .current-month {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .posts-sidebar {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            max-height: 800px;
+            overflow-y: auto;
+            transition: background 0.3s ease;
+        }
+        
+        .posts-sidebar.drag-over {
+            background: #e8e4dd;
+            border: 2px dashed var(--accent);
+        }
+        
+        .sidebar-header {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .sidebar-post {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            cursor: move;
+            transition: all 0.3s ease;
+            border-left: 3px solid var(--accent);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-post:hover {
+            transform: translateX(-4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-post::before {
+            content: "⋮⋮";
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--border);
+            font-size: 1rem;
+            line-height: 0.8;
+        }
+        
+        .sidebar-post-title {
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .sidebar-post-theme {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            background: var(--secondary);
+            color: white;
+        }
+
+        .day-header {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            text-align: center;
+            padding: 1rem;
+            color: var(--text-light);
+        }
+
+        .day-cell {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .day-cell:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .day-cell.other-month {
+            opacity: 0.3;
+        }
+
+        .day-number {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .day-posts {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .mini-post {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            background: var(--accent);
+            color: white;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+        
+        .mini-post:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        
+        .mini-post:active {
+            cursor: grabbing;
+        }
+
+        /* Liste */
+        .list-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .post-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            padding-left: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--accent);
+            cursor: move;
+            position: relative;
+        }
+
+        .post-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .post-card[draggable="true"]::before {
+            content: "⋮⋮";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--border);
+            font-size: 1.2rem;
+            line-height: 0.8;
+        }
+        
+        .post-card.quick-add {
+            padding-left: 1.5rem;
+        }
+        
+        .post-card.quick-add::before {
+            display: none;
+        }
+
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .post-date {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 0.3rem;
+            transition: color 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            color: var(--accent);
+        }
+
+        .post-theme {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: var(--secondary);
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-caption {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .post-links {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .post-title-display {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input[type="date"],
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Work Sans', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="date"]:focus,
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-cancel {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-cancel:hover {
+            background: #d5d1cb;
+        }
+
+        /* Thèmes */
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .theme-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .theme-name {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .theme-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+        }
+
+        .color-picker-group {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-light);
+        }
+
+        .empty-state p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .calendar-controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .calendar-controls > div {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            #calendar-view > div:last-child {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .posts-sidebar {
+                max-height: 300px;
+                order: -1;
+                margin-bottom: 1rem;
+            }
+            
+            .calendar-grid {
+                gap: 0.5rem;
+            }
+            
+            .day-cell {
+                min-height: 80px;
+                padding: 0.5rem;
+            }
+            
+            .day-number {
+                font-size: 0.9rem;
+            }
+            
+            .mini-post {
+                font-size: 0.7rem;
+            }
+            
+            .post-card {
+                padding: 1rem;
+            }
+            
+            .post-title-display {
+                font-size: 1.1rem;
+            }
+            
+            .post-actions {
+                flex-wrap: wrap;
+            }
+            
+            .icon-btn {
+                font-size: 1.2rem;
+            }
+            
+            .list-controls {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .themes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Planification Instagram</h1>
+            <p class="subtitle">Organise tes contenus avec fluidité</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" data-view="calendar">Calendrier</button>
+            <button class="tab" data-view="list">Liste</button>
+            <button class="tab" data-view="themes">Thèmes</button>
+        </div>
+
+        <!-- Vue Calendrier -->
+        <div class="view active" id="calendar-view">
+            <div class="calendar-controls">
+                <div class="calendar-nav">
+                    <button class="btn btn-small" onclick="previousMonth()">←</button>
+                    <span class="current-month" id="current-month"></span>
+                    <button class="btn btn-small" onclick="nextMonth()">→</button>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" onclick="openAddPostModal()">+ Nouveau post</button>
+                    <button class="btn btn-secondary" onclick="exportData()">Exporter</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Importer</button>
+                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+                </div>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem; font-style: italic;">
+                💡 Glisse les posts depuis la sidebar vers le calendrier • Glisse les posts du calendrier vers la sidebar pour les retirer
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem;">
+                <div class="calendar-grid" id="calendar-grid"></div>
+                <div class="posts-sidebar">
+                    <div class="sidebar-header">Posts à planifier</div>
+                    <div id="sidebar-posts"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue Liste -->
+        <div class="view" id="list-view">
+            <div class="list-controls">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-theme="all" onclick="filterByTheme('all')">Tous</button>
+                    <div id="theme-filters"></div>
+                </div>
+            </div>
+            
+            <!-- Quick add form -->
+            <div class="post-card quick-add" style="border-left-color: var(--secondary); margin-bottom: 1rem; cursor: default;">
+                <form id="quick-add-form" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: grid; grid-template-columns: 1fr 150px; gap: 1rem; align-items: center;">
+                        <input type="text" id="quick-title" placeholder="Titre du post..." required style="padding: 0.75rem; font-weight: 500; font-size: 1.05rem;">
+                        <button type="submit" class="btn" style="padding: 0.75rem;">Ajouter</button>
+                    </div>
+                    <textarea id="quick-caption" placeholder="Caption (optionnelle)..." style="padding: 0.75rem; min-height: 60px;"></textarea>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <select id="quick-theme" style="padding: 0.5rem;">
+                            <option value="">Thème (optionnel)</option>
+                        </select>
+                        <input type="text" id="quick-links" placeholder="Posts liés (ex: 1, 3, 5)" style="padding: 0.5rem;">
+                    </div>
+                </form>
+            </div>
+            
+            <div class="posts-list" id="posts-list"></div>
+        </div>
+
+        <!-- Vue Thèmes -->
+        <div class="view" id="themes-view">
+            <div style="margin-bottom: 2rem;">
+                <button class="btn" onclick="openAddThemeModal()">+ Nouveau thème</button>
+            </div>
+            <div class="themes-grid" id="themes-grid"></div>
+        </div>
+    </div>
+
+    <!-- Modal Post -->
+    <div class="modal" id="post-modal">
+        <div class="modal-content">
+            <h2 class="modal-header" id="post-modal-title">Nouveau post</h2>
+            <form id="post-form">
+                <input type="hidden" id="post-id">
+                <div class="form-group">
+                    <label for="post-title">Titre *</label>
+                    <input type="text" id="post-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="post-date">Date</label>
+                    <input type="date" id="post-date">
+                </div>
+                <div class="form-group">
+                    <label for="post-theme">Thème</label>
+                    <select id="post-theme">
+                        <option value="">Choisis un thème</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="post-caption">Caption</label>
+                    <textarea id="post-caption"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="post-links">Lié à (sépare les IDs par des virgules)</label>
+                    <input type="text" id="post-links" placeholder="ex: 1, 3, 5">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closePostModal()">Annuler</button>
+                    <button type="submit" class="btn">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Thème -->
+    <div class="modal" id="theme-modal">
+        <div class="modal-content">
+            <h2 class="modal-header">Nouveau thème</h2>
+            <form id="theme-form">
+                <input type="hidden" id="theme-id">
+                <div class="form-group">
+                    <label for="theme-name">Nom du thème</label>
+                    <input type="text" id="theme-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="theme-color">Couleur</label>
+                    <div class="color-picker-group">
+                        <input type="color" id="theme-color" value="#d4756e">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeThemeModal()">Annuler</button>
+                    <button type="submit" class="btn">Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Data structure
+        let data = {
+            posts: [],
+            themes: [],
+            nextPostId: 1,
+            nextThemeId: 1
+        };
+
+        let currentDate = new Date();
+        let currentFilter = 'all';
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('instaPlannerData');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('instaPlannerData', JSON.stringify(data));
+        }
+
+        // Initialize
+        function init() {
+            loadData();
+            renderCalendar();
+            renderList();
+            renderThemes();
+            updateThemeSelects();
+            updateThemeFilters();
+            
+            // Tab switching
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.view + '-view').classList.add('active');
+                });
+            });
+        }
+
+        // Calendar functions
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('current-month').textContent = 
+                new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Headers
+            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Previous month days
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            for (let i = startDay - 1; i >= 0; i--) {
+                const cell = createDayCell(prevMonthDays - i, month - 1, year, true);
+                grid.appendChild(cell);
+            }
+            
+            // Current month days
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const cell = createDayCell(day, month, year, false);
+                grid.appendChild(cell);
+            }
+            
+            // Next month days
+            const remainingCells = 42 - (startDay + lastDay.getDate());
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = createDayCell(day, month + 1, year, true);
+                grid.appendChild(cell);
+            }
+            
+            // Render sidebar posts
+            renderSidebarPosts();
+        }
+        
+        function renderSidebarPosts() {
+            const sidebar = document.getElementById('sidebar-posts');
+            const unscheduledPosts = data.posts.filter(p => !p.date);
+            
+            if (unscheduledPosts.length === 0) {
+                sidebar.innerHTML = '<div style="color: var(--text-light); font-size: 0.9rem; text-align: center; padding: 1rem;">Tous les posts sont planifiés ✓</div>';
+            } else {
+                sidebar.innerHTML = '';
+                unscheduledPosts.forEach(post => {
+                    const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
+                    const postDiv = document.createElement('div');
+                    postDiv.className = 'sidebar-post';
+                    postDiv.draggable = true;
+                    postDiv.dataset.postId = post.id;
+                    postDiv.style.borderLeftColor = theme ? theme.color : '#b8926a';
+                    
+                    postDiv.innerHTML = `
+                        <div class="sidebar-post-title">${post.title}</div>
+                        ${theme ? `<span class="sidebar-post-theme" style="background: ${theme.color}">${theme.name}</span>` : ''}
+                    `;
+                    
+                    postDiv.addEventListener('dragstart', handleDragStart);
+                    postDiv.addEventListener('dragend', handleDragEnd);
+                    
+                    sidebar.appendChild(postDiv);
+                });
+            }
+            
+            // Make sidebar droppable
+            sidebar.addEventListener('dragover', handleSidebarDragOver);
+            sidebar.addEventListener('drop', handleSidebarDrop);
+            sidebar.addEventListener('dragleave', handleSidebarDragLeave);
+        }
+        
+        function handleSidebarDragOver(e) {
+            e.preventDefault();
+            const sidebar = document.getElementById('sidebar-posts');
+            sidebar.style.background = '#e8e4dd';
+        }
+        
+        function handleSidebarDragLeave(e) {
+            if (e.target.id === 'sidebar-posts' || e.relatedTarget?.closest('#sidebar-posts') === null) {
+                const sidebar = document.getElementById('sidebar-posts');
+                sidebar.style.background = '';
+            }
+        }
+        
+        function handleSidebarDrop(e) {
+            e.preventDefault();
+            const sidebar = document.getElementById('sidebar-posts');
+            sidebar.style.background = '';
+            
+            if (!draggedPost) return;
+            
+            const post = data.posts.find(p => p.id === draggedPost);
+            
+            if (post && post.date) {
+                post.date = null;
+                saveData();
+                renderCalendar();
+                renderList();
+            }
+            
+            draggedPost = null;
+        }
+
+        function createDayCell(day, month, year, isOtherMonth) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            if (isOtherMonth) cell.classList.add('other-month');
+            
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            cell.dataset.date = dateStr;
+            
+            cell.innerHTML = `<div class="day-number">${day}</div>`;
+            
+            const dayPosts = data.posts.filter(p => p.date === dateStr);
+            if (dayPosts.length > 0) {
+                const postsDiv = document.createElement('div');
+                postsDiv.className = 'day-posts';
+                dayPosts.forEach(post => {
+                    const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
+                    const miniPost = document.createElement('div');
+                    miniPost.className = 'mini-post';
+                    miniPost.draggable = true;
+                    miniPost.dataset.postId = post.id;
+                    miniPost.style.background = theme ? theme.color : '#b8926a';
+                    miniPost.textContent = post.title.substring(0, 25) + (post.title.length > 25 ? '...' : '');
+                    
+                    // Click pour éditer
+                    miniPost.onclick = (e) => {
+                        e.stopPropagation();
+                        editPost(post.id);
+                    };
+                    
+                    // Drag events
+                    miniPost.addEventListener('dragstart', (e) => {
+                        draggedPost = post.id;
+                        e.stopPropagation();
+                        miniPost.style.opacity = '0.4';
+                    });
+                    
+                    miniPost.addEventListener('dragend', (e) => {
+                        miniPost.style.opacity = '1';
+                    });
+                    
+                    postsDiv.appendChild(miniPost);
+                });
+                cell.appendChild(postsDiv);
+            }
+            
+            cell.onclick = () => {
+                openAddPostModal(dateStr);
+            };
+            
+            // Drop events for drag and drop
+            cell.addEventListener('dragover', handleDragOver);
+            cell.addEventListener('drop', handleDrop);
+            cell.addEventListener('dragleave', handleDragLeave);
+            
+            return cell;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.style.background = '#e8e4dd';
+        }
+        
+        function handleDragLeave(e) {
+            e.currentTarget.style.background = '';
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.style.background = '';
+            
+            if (!draggedPost) return;
+            
+            const targetDate = e.currentTarget.dataset.date;
+            const post = data.posts.find(p => p.id === draggedPost);
+            
+            if (post) {
+                post.date = targetDate;
+                saveData();
+                renderCalendar();
+                renderList();
+            }
+            
+            draggedPost = null;
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        // List functions
+        function renderList() {
+            const list = document.getElementById('posts-list');
+            let posts = [...data.posts].sort((a, b) => {
+                // Posts sans date en premier, puis par date
+                if (!a.date && !b.date) return a.id - b.id;
+                if (!a.date) return -1;
+                if (!b.date) return 1;
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            if (currentFilter !== 'all') {
+                posts = posts.filter(p => p.themeId === parseInt(currentFilter));
+            }
+            
+            if (posts.length === 0) {
+                list.innerHTML = '<div class="empty-state"><p>Aucun post pour le moment</p></div>';
+                return;
+            }
+            
+            list.innerHTML = '';
+            posts.forEach(post => {
+                const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.draggable = true;
+                card.dataset.postId = post.id;
+                card.style.borderLeftColor = theme ? theme.color : '#b8926a';
+                
+                const linkedPosts = post.linkedTo ? post.linkedTo.map(id => {
+                    const linked = data.posts.find(p => p.id === id);
+                    return linked ? `#${id}` : null;
+                }).filter(Boolean).join(', ') : '';
+                
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div style="flex: 1;">
+                            <div class="post-title-display">${post.title}</div>
+                        </div>
+                        <div class="post-actions">
+                            ${post.caption ? `<button class="icon-btn" onclick="copyCaption(${post.id})" title="Copier caption">📋</button>` : ''}
+                            <button class="icon-btn" onclick="editPost(${post.id})" title="Modifier">✏️</button>
+                            <button class="icon-btn" onclick="deletePost(${post.id})" title="Supprimer">🗑️</button>
+                        </div>
+                    </div>
+                    ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                        ${theme ? `<span class="post-theme" style="background: ${theme.color}">${theme.name}</span>` : ''}
+                        ${linkedPosts ? `<span class="post-links">Lié à: ${linkedPosts}</span>` : ''}
+                    </div>
+                `;
+                
+                // Drag and drop events
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragend', handleDragEnd);
+                
+                list.appendChild(card);
+            });
+        }
+        
+        // Drag and drop handlers
+        let draggedPost = null;
+        
+        function handleDragStart(e) {
+            draggedPost = parseInt(e.target.dataset.postId);
+            e.target.style.opacity = '0.4';
+        }
+        
+        function handleDragEnd(e) {
+            e.target.style.opacity = '1';
+        }
+        
+        function copyCaption(postId) {
+            const post = data.posts.find(p => p.id === postId);
+            if (!post || !post.caption) return;
+            
+            navigator.clipboard.writeText(post.caption).then(() => {
+                // Visual feedback
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✓';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            }).catch(err => {
+                alert('Erreur lors de la copie');
+            });
+        }
+
+        function filterByTheme(themeId) {
+            currentFilter = themeId;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === themeId);
+            });
+            renderList();
+        }
+
+        function updateThemeFilters() {
+            const container = document.getElementById('theme-filters');
+            container.innerHTML = '';
+            data.themes.forEach(theme => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.dataset.theme = theme.id;
+                btn.textContent = theme.name;
+                btn.onclick = () => filterByTheme(theme.id.toString());
+                container.appendChild(btn);
+            });
+        }
+
+        // Themes functions
+        function renderThemes() {
+            const grid = document.getElementById('themes-grid');
+            
+            if (data.themes.length === 0) {
+                grid.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>Aucun thème créé</p><button class="btn" onclick="openAddThemeModal()">Créer ton premier thème</button></div>';
+                return;
+            }
+            
+            grid.innerHTML = '';
+            data.themes.forEach(theme => {
+                const card = document.createElement('div');
+                card.className = 'theme-card';
+                card.innerHTML = `
+                    <div class="theme-name">${theme.name}</div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <div class="theme-color" style="background: ${theme.color}"></div>
+                        <button class="icon-btn" onclick="editTheme(${theme.id})" title="Modifier">✏️</button>
+                        <button class="icon-btn" onclick="deleteTheme(${theme.id})" title="Supprimer">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Post modal
+        function openAddPostModal(date = '') {
+            document.getElementById('post-modal-title').textContent = 'Nouveau post';
+            document.getElementById('post-form').reset();
+            document.getElementById('post-id').value = '';
+            if (date) {
+                document.getElementById('post-date').value = date;
+            }
+            document.getElementById('post-modal').classList.add('active');
+        }
+
+        function editPost(id) {
+            const post = data.posts.find(p => p.id === id);
+            if (!post) return;
+            
+            document.getElementById('post-modal-title').textContent = 'Modifier le post';
+            document.getElementById('post-id').value = post.id;
+            document.getElementById('post-title').value = post.title || '';
+            document.getElementById('post-date').value = post.date || '';
+            document.getElementById('post-theme').value = post.themeId || '';
+            document.getElementById('post-caption').value = post.caption || '';
+            document.getElementById('post-links').value = post.linkedTo ? post.linkedTo.join(', ') : '';
+            document.getElementById('post-modal').classList.add('active');
+        }
+
+        function closePostModal() {
+            document.getElementById('post-modal').classList.remove('active');
+        }
+
+        function deletePost(id) {
+            if (confirm('Supprimer ce post ?')) {
+                data.posts = data.posts.filter(p => p.id !== id);
+                saveData();
+                renderCalendar();
+                renderList();
+            }
+        }
+
+        document.getElementById('post-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('post-id').value;
+            const linkedStr = document.getElementById('post-links').value;
+            const linkedTo = linkedStr ? linkedStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+            
+            const dateValue = document.getElementById('post-date').value;
+            const themeValue = document.getElementById('post-theme').value;
+            
+            const postData = {
+                title: document.getElementById('post-title').value,
+                date: dateValue || null,
+                themeId: themeValue ? parseInt(themeValue) : null,
+                caption: document.getElementById('post-caption').value || '',
+                linkedTo: linkedTo
+            };
+            
+            if (id) {
+                // Update
+                const post = data.posts.find(p => p.id === parseInt(id));
+                Object.assign(post, postData);
+            } else {
+                // Create
+                postData.id = data.nextPostId++;
+                data.posts.push(postData);
+            }
+            
+            saveData();
+            closePostModal();
+            renderCalendar();
+            renderList();
+        });
+
+        // Theme modal
+        function openAddThemeModal() {
+            document.getElementById('theme-form').reset();
+            document.getElementById('theme-id').value = '';
+            document.getElementById('theme-modal').classList.add('active');
+        }
+
+        function editTheme(id) {
+            const theme = data.themes.find(t => t.id === id);
+            if (!theme) return;
+            
+            document.getElementById('theme-id').value = theme.id;
+            document.getElementById('theme-name').value = theme.name;
+            document.getElementById('theme-color').value = theme.color;
+            document.getElementById('theme-modal').classList.add('active');
+        }
+
+        function closeThemeModal() {
+            document.getElementById('theme-modal').classList.remove('active');
+        }
+
+        function deleteTheme(id) {
+            const usedInPosts = data.posts.some(p => p.themeId === id);
+            if (usedInPosts) {
+                alert('Ce thème est utilisé par des posts. Supprime d\'abord les posts associés.');
+                return;
+            }
+            
+            if (confirm('Supprimer ce thème ?')) {
+                data.themes = data.themes.filter(t => t.id !== id);
+                saveData();
+                renderThemes();
+                updateThemeSelects();
+                updateThemeFilters();
+            }
+        }
+
+        document.getElementById('theme-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('theme-id').value;
+            const themeData = {
+                name: document.getElementById('theme-name').value,
+                color: document.getElementById('theme-color').value
+            };
+            
+            if (id) {
+                // Update
+                const theme = data.themes.find(t => t.id === parseInt(id));
+                Object.assign(theme, themeData);
+            } else {
+                // Create
+                themeData.id = data.nextThemeId++;
+                data.themes.push(themeData);
+            }
+            
+            saveData();
+            closeThemeModal();
+            renderThemes();
+            updateThemeSelects();
+            updateThemeFilters();
+            renderCalendar();
+            renderList();
+        });
+
+        // Quick add form
+        document.getElementById('quick-add-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const linkedStr = document.getElementById('quick-links').value;
+            const linkedTo = linkedStr ? linkedStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) : [];
+            
+            const themeValue = document.getElementById('quick-theme').value;
+            
+            const postData = {
+                id: data.nextPostId++,
+                title: document.getElementById('quick-title').value,
+                date: null,
+                themeId: themeValue ? parseInt(themeValue) : null,
+                caption: document.getElementById('quick-caption').value || '',
+                linkedTo: linkedTo
+            };
+            
+            data.posts.push(postData);
+            saveData();
+            
+            // Reset form
+            document.getElementById('quick-add-form').reset();
+            document.getElementById('quick-title').focus();
+            
+            renderCalendar();
+            renderList();
+        });
+
+        function updateThemeSelects() {
+            // Update modal select
+            const select = document.getElementById('post-theme');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Choisis un thème</option>';
+            data.themes.forEach(theme => {
+                const option = document.createElement('option');
+                option.value = theme.id;
+                option.textContent = theme.name;
+                select.appendChild(option);
+            });
+            if (currentValue) select.value = currentValue;
+            
+            // Update quick add select
+            const quickSelect = document.getElementById('quick-theme');
+            const quickCurrentValue = quickSelect.value;
+            quickSelect.innerHTML = '<option value="">Thème</option>';
+            data.themes.forEach(theme => {
+                const option = document.createElement('option');
+                option.value = theme.id;
+                option.textContent = theme.name;
+                quickSelect.appendChild(option);
+            });
+            if (quickCurrentValue) quickSelect.value = quickCurrentValue;
+        }
+
+        // Export/Import
+        function exportData() {
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `instagram-planner-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (confirm('Importer ces données ? Cela remplacera toutes tes données actuelles.')) {
+                        data = imported;
+                        saveData();
+                        renderCalendar();
+                        renderList();
+                        renderThemes();
+                        updateThemeSelects();
+                        updateThemeFilters();
+                        alert('Données importées avec succès !');
+                    }
+                } catch (error) {
+                    alert('Erreur lors de l\'import : fichier invalide');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
