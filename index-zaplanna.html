@@ -1170,9 +1170,15 @@
             }
         }
 
-        // Save data to localStorage
+        // Save data to localStorage and Google Drive
         function saveData() {
             localStorage.setItem('instaPlannerData', JSON.stringify(data));
+            localStorage.setItem('lastSaveTime', Date.now());
+
+            // Also save to Google Drive if enabled
+            if (googleDriveEnabled) {
+                saveToDrive();
+            }
         }
 
         // Initialize
@@ -1183,7 +1189,10 @@
             renderThemes();
             updateThemeSelects();
             updateThemeFilters();
-            
+
+            // Initialize Google Drive
+            initGoogleDrive();
+
             // Tab switching
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
