@@ -72,20 +72,51 @@ const GOOGLE_CONFIG = {
 - `VOTRE_CLIENT_ID_ICI.apps.googleusercontent.com` → Par votre **Client ID** (étape 3B)
 - `VOTRE_API_KEY_ICI` → Par votre **API Key** (étape 4)
 
-### 6. Déployer et tester
+### 6. Créer votre fichier de données sur Google Drive
 
-1. Sauvegarder le fichier
+**Méthode simple** :
+
+1. Aller sur [Google Drive](https://drive.google.com)
+2. Sur votre ordinateur, créer un nouveau fichier texte nommé `zaplanna-instagram-planner.json`
+3. Ouvrir ce fichier avec un éditeur de texte (Notepad, TextEdit, etc.)
+4. Copier-coller exactement ce texte :
+   ```json
+   {
+     "posts": [],
+     "themes": [],
+     "nextPostId": 1,
+     "nextThemeId": 1
+   }
+   ```
+5. Sauvegarder le fichier
+6. Glisser-déposer ce fichier dans votre Google Drive
+7. Dans Google Drive, **ouvrir le fichier** (double-cliquer dessus)
+8. Dans l'URL du navigateur, vous verrez quelque chose comme :
+   ```
+   https://drive.google.com/file/d/1ABC123xyz456DEF/view
+                                    ↑ Copier cet ID ↑
+   ```
+9. **Copier l'ID** (la partie entre `/d/` et `/view`)
+10. **Garder cet ID** quelque part (notes, presse-papier), vous en aurez besoin !
+
+**Note** : Vous pouvez placer ce fichier n'importe où dans votre Drive (racine, dossier, etc.)
+
+### 7. Déployer et tester
+
+1. Sauvegarder le fichier HTML modifié (avec vos clés API)
 2. Commiter et pusher vers GitHub
 3. Netlify va automatiquement déployer
 4. Ouvrir votre site : `https://votre-site.netlify.app`
 5. Cliquer sur **"Connecter Google Drive"**
 6. Autoriser l'accès à Google Drive
+7. **Coller l'ID de votre fichier** (l'ID que vous avez copié à l'étape 6.13)
+8. Cliquer sur **"Connecter"**
 
 ---
 
 ## ✅ C'est fait !
 
-Maintenant, tous vos posts Instagram seront automatiquement sauvegardés dans un fichier `zaplanna-instagram-planner.json` dans votre Google Drive.
+Maintenant, tous vos posts Instagram seront automatiquement sauvegardés dans VOTRE fichier Google Drive que vous avez créé.
 
 Vous pourrez accéder à votre planner depuis :
 - 📱 Votre téléphone mobile
@@ -93,6 +124,21 @@ Vous pourrez accéder à votre planner depuis :
 - 📟 Votre tablette
 
 Tout sera synchronisé automatiquement !
+
+### 🤝 Partager avec d'autres personnes
+
+Si vous voulez que quelqu'un d'autre (assistant, collaborateur, équipe) puisse aussi utiliser le planner :
+
+1. Dans Google Drive, cliquer droit sur votre fichier `zaplanna-instagram-planner.json`
+2. Cliquer sur **"Partager"**
+3. Ajouter l'adresse email de la personne
+4. Lui donner l'accès **"Éditeur"** (pour qu'elle puisse modifier)
+5. Cette personne devra :
+   - Configurer ses propres clés API (étapes 1-5)
+   - Se connecter à Google Drive
+   - Utiliser le **même ID de fichier** que vous
+
+Ainsi, vous travaillerez tous sur le même fichier !
 
 ---
 
