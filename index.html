@@ -942,14 +942,14 @@
 
             <!-- Vue 3 mois -->
             <div id="three-months-view" style="display: none;">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div id="month-container-0"></div>
-                    <div id="month-container-1"></div>
-                    <div id="month-container-2"></div>
-                </div>
-                <div class="posts-sidebar">
-                    <div class="sidebar-header">Posts à planifier</div>
-                    <div id="sidebar-posts-3months"></div>
+                <div style="display: flex; gap: 1.5rem;">
+                    <div style="flex: 1;">
+                        <div id="three-months-container"></div>
+                    </div>
+                    <div class="posts-sidebar">
+                        <div class="sidebar-header">Posts à planifier</div>
+                        <div id="sidebar-posts-3months"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1665,14 +1665,78 @@
                 ' - ' +
                 lastMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
+            const container = document.getElementById('three-months-container');
+            container.innerHTML = '';
+
             // Render each month
             for (let i = 0; i < 3; i++) {
                 const monthDate = new Date(baseYear, baseMonth + i);
-                renderSingleMonthInContainer(monthDate, i);
+                const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+                // Add month title
+                const monthTitle = document.createElement('h2');
+                monthTitle.style.cssText = `
+                    font-family: 'Cormorant Garamond', serif;
+                    font-size: 1.8rem;
+                    font-weight: 600;
+                    color: var(--primary);
+                    text-align: center;
+                    margin: ${i === 0 ? '0' : '2rem'} 0 1.5rem 0;
+                    text-transform: capitalize;
+                `;
+                monthTitle.textContent = monthName;
+                container.appendChild(monthTitle);
+
+                // Create calendar grid for this month
+                const grid = document.createElement('div');
+                grid.className = 'calendar-grid';
+                grid.id = `calendar-grid-${i}`;
+
+                renderFullMonthInGrid(grid, monthDate);
+                container.appendChild(grid);
             }
 
             // Render sidebar
             renderSidebarPostsForThreeMonths();
+        }
+
+        function renderFullMonthInGrid(grid, monthDate) {
+            const year = monthDate.getFullYear();
+            const month = monthDate.getMonth();
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+
+            grid.innerHTML = '';
+
+            // Headers
+            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+
+            // Previous month days
+            const prevMonthDays = new Date(year, month, 0).getDate();
+            for (let i = startDay - 1; i >= 0; i--) {
+                const cell = createDayCell(prevMonthDays - i, month - 1, year, true);
+                grid.appendChild(cell);
+            }
+
+            // Current month days
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const cell = createDayCell(day, month, year, false);
+                grid.appendChild(cell);
+            }
+
+            // Next month days
+            const remainingCells = 42 - (startDay + lastDay.getDate());
+            for (let day = 1; day <= remainingCells; day++) {
+                const cell = createDayCell(day, month + 1, year, true);
+                grid.appendChild(cell);
+            }
         }
 
         function renderSingleMonthInContainer(date, containerIndex) {
