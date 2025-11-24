@@ -795,14 +795,19 @@
             <div class="sync-indicator" id="sync-indicator"></div>
             <span id="sync-status-text">Non connecté</span>
         </div>
-        <div id="google-signin-btn"></div>
-        <div class="file-id-input" id="file-id-input">
-            <input type="text" id="drive-file-id-input" placeholder="ID ou URL du fichier Drive...">
-            <button class="btn btn-small" onclick="connectToFile()">Connecter au fichier</button>
+
+        <!-- Connection section (shown when not connected) -->
+        <div id="connection-section">
+            <input type="text" id="drive-file-id-input" placeholder="ID ou URL du fichier Drive..." style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 6px; font-size: 0.85rem; margin-bottom: 0.5rem;">
+            <button class="btn btn-small" onclick="connectToFile()" style="width: 100%;">Connecter Drive</button>
             <div class="file-id-help">💡 Colle l'ID ou l'URL de ton fichier JSON sur Drive</div>
         </div>
-        <button class="btn btn-small" id="sync-btn" onclick="syncWithDrive()" style="display: none;">Synchroniser</button>
-        <button class="btn btn-small" id="disconnect-btn" onclick="disconnectDrive()" style="display: none;">Déconnecter</button>
+
+        <!-- Connected section (shown when connected) -->
+        <div id="connected-section" style="display: none;">
+            <button class="btn btn-small" id="sync-btn" onclick="syncWithDrive()" style="width: 100%; margin-bottom: 0.5rem;">Synchroniser</button>
+            <button class="btn btn-small" id="disconnect-btn" onclick="disconnectDrive()" style="width: 100%;">Déconnecter</button>
+        </div>
     </div>
 
     <div class="container">
@@ -1001,26 +1006,27 @@
                 const savedToken = localStorage.getItem('gdriveAccessToken');
                 const savedFileId = localStorage.getItem('gdriveFileId');
 
-                if (savedToken) {
+                if (savedToken && savedFileId) {
+                    // Both token and file ID exist - fully connected
                     accessToken = savedToken;
                     driveFileId = savedFileId;
                     gapi.client.setToken({ access_token: accessToken });
 
-                    if (savedFileId) {
-                        // Both token and file ID exist
-                        updateSyncStatus('connected', 'Connecté au fichier');
-                        document.getElementById('sync-btn').style.display = 'block';
-                        document.getElementById('disconnect-btn').style.display = 'block';
-                    } else {
-                        // Token exists but no file ID
-                        updateSyncStatus('connected', 'Entre l\'ID du fichier');
-                        document.getElementById('file-id-input').style.display = 'block';
-                        document.getElementById('disconnect-btn').style.display = 'block';
-                    }
-                } else {
-                    document.getElementById('google-signin-btn').innerHTML = '<button class="btn btn-small" onclick="handleAuthClick()">Connecter Drive</button>';
+                    updateSyncStatus('connected', 'Connecté au fichier');
+                    showConnectedState();
                 }
+                // If no token or no file ID, show connection form (default state)
             }
+        }
+
+        function showConnectionState() {
+            document.getElementById('connection-section').style.display = 'block';
+            document.getElementById('connected-section').style.display = 'none';
+        }
+
+        function showConnectedState() {
+            document.getElementById('connection-section').style.display = 'none';
+            document.getElementById('connected-section').style.display = 'block';
         }
 
         function handleAuthClick() {
@@ -1031,6 +1037,7 @@
             if (resp.error) {
                 console.error('Auth error:', resp);
                 updateSyncStatus('disconnected', 'Erreur de connexion');
+                showConnectionState();
                 return;
             }
 
@@ -1038,17 +1045,17 @@
             localStorage.setItem('gdriveAccessToken', accessToken);
             gapi.client.setToken({ access_token: accessToken });
 
-            // Show file ID input if no file is connected yet
-            if (!driveFileId) {
-                updateSyncStatus('connected', 'Authentifié - Entre l\'ID du fichier');
-                document.getElementById('google-signin-btn').innerHTML = '';
-                document.getElementById('file-id-input').style.display = 'block';
-            } else {
+            // Check if there's a pending file ID to connect to
+            const pendingFileId = localStorage.getItem('pendingDriveFileId');
+            if (pendingFileId) {
+                verifyAndConnectFile(pendingFileId);
+            } else if (driveFileId) {
                 updateSyncStatus('connected', 'Connecté au fichier');
-                document.getElementById('google-signin-btn').innerHTML = '';
-                document.getElementById('sync-btn').style.display = 'block';
-                document.getElementById('disconnect-btn').style.display = 'block';
+                showConnectedState();
                 syncWithDrive();
+            } else {
+                updateSyncStatus('connected', 'Authentifié - Entre l\'ID du fichier');
+                showConnectionState();
             }
         }
 
@@ -1064,17 +1071,32 @@
             const input = document.getElementById('drive-file-id-input').value.trim();
 
             if (!input) {
-                alert('Entre l\'ID ou l\'URL du fichier Google Drive');
+                alert('Entre l\'ID ou l\'URL du fichier Google Drive\n\nTu peux trouver l\'ID dans l\'URL de ton fichier Drive:\nhttps://drive.google.com/file/d/[ID_ICI]/view');
+                return;
+            }
+
+            // Save the file ID temporarily
+            const fileId = extractFileId(input);
+            localStorage.setItem('pendingDriveFileId', fileId);
+
+            // Check if we need to authenticate first
+            if (!gapiInited || !gisInited) {
+                alert('Chargement de Google Drive en cours... Réessaie dans quelques secondes.');
                 return;
             }
 
             if (!accessToken) {
-                alert('Authentifie-toi d\'abord à Google Drive');
+                // Need to authenticate first
+                updateSyncStatus('syncing', 'Authentification...');
+                tokenClient.requestAccessToken({ prompt: 'consent' });
                 return;
             }
 
-            const fileId = extractFileId(input);
+            // Already authenticated, verify and connect to file
+            await verifyAndConnectFile(fileId);
+        }
 
+        async function verifyAndConnectFile(fileId) {
             updateSyncStatus('syncing', 'Vérification du fichier...');
 
             try {
@@ -1086,19 +1108,18 @@
 
                 driveFileId = fileId;
                 localStorage.setItem('gdriveFileId', fileId);
-
-                document.getElementById('file-id-input').style.display = 'none';
-                document.getElementById('sync-btn').style.display = 'block';
-                document.getElementById('disconnect-btn').style.display = 'block';
+                localStorage.removeItem('pendingDriveFileId');
 
                 updateSyncStatus('connected', 'Connecté: ' + response.result.name);
+                showConnectedState();
 
                 // Auto sync after connection
                 syncWithDrive();
             } catch (error) {
                 console.error('Error accessing file:', error);
                 updateSyncStatus('disconnected', 'Erreur: fichier inaccessible');
-                alert('Impossible d\'accéder au fichier. Vérifie:\n- L\'ID/URL est correct\n- Le fichier existe\n- Tu as les permissions');
+                showConnectionState();
+                alert('Impossible d\'accéder au fichier. Vérifie:\n- L\'ID/URL est correct\n- Le fichier existe sur ton Drive\n- Tu as les permissions nécessaires\n\nExemple d\'ID: 1a2b3c4d5e6f7g8h9i0j');
             }
         }
 
@@ -1108,12 +1129,14 @@
                 driveFileId = null;
                 localStorage.removeItem('gdriveAccessToken');
                 localStorage.removeItem('gdriveFileId');
+                localStorage.removeItem('pendingDriveFileId');
                 gapi.client.setToken(null);
 
                 updateSyncStatus('disconnected', 'Non connecté');
-                document.getElementById('sync-btn').style.display = 'none';
-                document.getElementById('disconnect-btn').style.display = 'none';
-                document.getElementById('google-signin-btn').innerHTML = '<button class="btn btn-small" onclick="handleAuthClick()">Connecter Drive</button>';
+                showConnectionState();
+
+                // Clear the input field
+                document.getElementById('drive-file-id-input').value = '';
             }
         }
 
