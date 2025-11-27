@@ -166,7 +166,7 @@
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 2rem;
         }
         
@@ -249,9 +249,9 @@
 
         .day-cell {
             background: var(--card);
-            border-radius: 12px;
-            padding: 1rem;
-            min-height: 120px;
+            border-radius: 8px;
+            padding: 0.5rem;
+            min-height: 80px;
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid transparent;
@@ -276,7 +276,8 @@
         .day-number {
             font-weight: 600;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
         }
 
         .day-posts {
@@ -286,9 +287,9 @@
         }
 
         .mini-post {
-            font-size: 0.75rem;
-            padding: 0.3rem 0.5rem;
-            border-radius: 6px;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
             background: var(--accent);
             color: white;
             overflow: hidden;
@@ -1611,45 +1612,67 @@
             const cell = document.createElement('div');
             cell.className = 'day-cell';
             if (isOtherMonth) cell.classList.add('other-month');
-            
+
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             cell.dataset.date = dateStr;
-            
-            cell.innerHTML = `<div class="day-number">${day}</div>`;
-            
+
             const dayPosts = data.posts.filter(p => p.date === dateStr);
+
+            // Render day number with first post title inline if exists
             if (dayPosts.length > 0) {
-                const postsDiv = document.createElement('div');
-                postsDiv.className = 'day-posts';
-                dayPosts.forEach(post => {
-                    const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
-                    const miniPost = document.createElement('div');
-                    miniPost.className = 'mini-post';
-                    miniPost.draggable = true;
-                    miniPost.dataset.postId = post.id;
-                    miniPost.style.background = theme ? theme.color : '#b8926a';
-                    miniPost.textContent = post.title.substring(0, 25) + (post.title.length > 25 ? '...' : '');
-                    
-                    // Click pour éditer
-                    miniPost.onclick = (e) => {
-                        e.stopPropagation();
-                        editPost(post.id);
-                    };
-                    
-                    // Drag events
-                    miniPost.addEventListener('dragstart', (e) => {
-                        draggedPost = post.id;
-                        e.stopPropagation();
-                        miniPost.style.opacity = '0.4';
+                const firstPost = dayPosts[0];
+                const theme = firstPost.themeId ? data.themes.find(t => t.id === firstPost.themeId) : null;
+                const titlePreview = firstPost.title.substring(0, 20) + (firstPost.title.length > 20 ? '...' : '');
+
+                cell.innerHTML = `
+                    <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem;">
+                        <div class="day-number" style="margin-bottom: 0;">${day}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">${titlePreview}</div>
+                    </div>
+                `;
+
+                // If there are more posts, create mini-posts for them
+                if (dayPosts.length > 1) {
+                    const postsDiv = document.createElement('div');
+                    postsDiv.className = 'day-posts';
+                    dayPosts.slice(1).forEach(post => {
+                        const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
+                        const miniPost = document.createElement('div');
+                        miniPost.className = 'mini-post';
+                        miniPost.draggable = true;
+                        miniPost.dataset.postId = post.id;
+                        miniPost.style.background = theme ? theme.color : '#b8926a';
+                        miniPost.textContent = post.title.substring(0, 20) + (post.title.length > 20 ? '...' : '');
+
+                        // Click pour éditer
+                        miniPost.onclick = (e) => {
+                            e.stopPropagation();
+                            editPost(post.id);
+                        };
+
+                        // Drag events
+                        miniPost.addEventListener('dragstart', (e) => {
+                            draggedPost = post.id;
+                            e.stopPropagation();
+                            miniPost.style.opacity = '0.4';
+                        });
+
+                        miniPost.addEventListener('dragend', (e) => {
+                            miniPost.style.opacity = '1';
+                        });
+
+                        postsDiv.appendChild(miniPost);
                     });
-                    
-                    miniPost.addEventListener('dragend', (e) => {
-                        miniPost.style.opacity = '1';
-                    });
-                    
-                    postsDiv.appendChild(miniPost);
-                });
-                cell.appendChild(postsDiv);
+                    cell.appendChild(postsDiv);
+                }
+
+                // Make the first post title clickable to edit
+                cell.querySelector('div[style*="text-overflow"]').onclick = (e) => {
+                    e.stopPropagation();
+                    editPost(firstPost.id);
+                };
+            } else {
+                cell.innerHTML = `<div class="day-number">${day}</div>`;
             }
             
             cell.onclick = () => {
@@ -1950,7 +1973,6 @@
                 card.draggable = true;
                 card.dataset.postId = post.id;
                 card.style.borderLeftColor = theme ? theme.color : '#b8926a';
-                card.style.cursor = 'default';
                 card.style.padding = '1rem 1rem 1rem 1.5rem';
 
                 const dateDisplay = post.date ?
