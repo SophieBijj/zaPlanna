@@ -1797,34 +1797,52 @@
                 const monthDate = new Date(baseYear, baseMonth + i);
                 const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
-                // Add month title
-                const monthTitle = document.createElement('h2');
+                // Wrapper for month with title
+                const monthWrapper = document.createElement('div');
+                monthWrapper.style.cssText = `
+                    margin-top: ${i === 0 ? '0' : '1rem'};
+                    position: relative;
+                `;
+
+                // Add month title (smaller, top-right position)
+                const monthTitle = document.createElement('div');
                 monthTitle.style.cssText = `
                     font-family: 'Cormorant Garamond', serif;
-                    font-size: 1.8rem;
+                    font-size: ${i === 0 ? '1.1rem' : '0.9rem'};
                     font-weight: 600;
                     color: var(--primary);
-                    text-align: center;
-                    margin: ${i === 0 ? '0' : '2rem'} 0 1.5rem 0;
+                    position: absolute;
+                    top: 0.5rem;
+                    right: 0;
                     text-transform: capitalize;
+                    z-index: 1;
+                    background: var(--bg);
+                    padding: 0.2rem 0.5rem;
+                    border-radius: 4px;
                 `;
                 monthTitle.textContent = monthName;
-                container.appendChild(monthTitle);
+                monthWrapper.appendChild(monthTitle);
 
                 // Create calendar grid for this month
                 const grid = document.createElement('div');
                 grid.className = 'calendar-grid';
                 grid.id = `calendar-grid-${i}`;
 
-                renderFullMonthInGrid(grid, monthDate);
-                container.appendChild(grid);
+                // Add smaller day headers for months 2 and 3
+                if (i > 0) {
+                    grid.style.fontSize = '0.85rem';
+                }
+
+                renderFullMonthInGrid(grid, monthDate, i);
+                monthWrapper.appendChild(grid);
+                container.appendChild(monthWrapper);
             }
 
             // Render sidebar
             renderSidebarPostsForThreeMonths();
         }
 
-        function renderFullMonthInGrid(grid, monthDate) {
+        function renderFullMonthInGrid(grid, monthDate, monthIndex = 0) {
             const year = monthDate.getFullYear();
             const month = monthDate.getMonth();
 
@@ -1834,11 +1852,19 @@
 
             grid.innerHTML = '';
 
-            // Headers
-            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(day => {
+            // Headers - use shorter versions for months 2 and 3
+            const dayNames = monthIndex > 0
+                ? ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+                : ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
+            dayNames.forEach(day => {
                 const header = document.createElement('div');
                 header.className = 'day-header';
                 header.textContent = day;
+                if (monthIndex > 0) {
+                    header.style.fontSize = '0.75rem';
+                    header.style.padding = '0.5rem';
+                }
                 grid.appendChild(header);
             });
 
@@ -1855,8 +1881,13 @@
                 grid.appendChild(cell);
             }
 
-            // Next month days
-            const remainingCells = 42 - (startDay + lastDay.getDate());
+            // Calculate exact number of weeks needed (4, 5, or 6)
+            const totalDaysShown = startDay + lastDay.getDate();
+            const weeksNeeded = Math.ceil(totalDaysShown / 7);
+            const targetCells = weeksNeeded * 7;
+
+            // Next month days - only fill to complete the last week
+            const remainingCells = targetCells - (startDay + lastDay.getDate());
             for (let day = 1; day <= remainingCells; day++) {
                 const cell = createDayCell(day, month + 1, year, true);
                 grid.appendChild(cell);
