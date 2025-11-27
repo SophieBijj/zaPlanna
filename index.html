@@ -908,7 +908,6 @@
         <div class="tabs">
             <button class="tab active" data-view="calendar">Calendrier</button>
             <button class="tab" data-view="list">Liste</button>
-            <button class="tab" data-view="status">État</button>
             <button class="tab" data-view="themes">Thèmes</button>
         </div>
 
@@ -957,13 +956,33 @@
 
         <!-- Vue Liste -->
         <div class="view" id="list-view">
+            <!-- Statistics -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <div style="background: var(--card); padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="font-size: 1.8rem; font-weight: 600; color: var(--primary);" id="list-total-posts">0</div>
+                    <div style="color: var(--text-light); font-size: 0.85rem;">Total des posts</div>
+                </div>
+                <div style="background: var(--card); padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="font-size: 1.8rem; font-weight: 600; color: #4CAF50;" id="list-edited-posts">0</div>
+                    <div style="color: var(--text-light); font-size: 0.85rem;">✏️ Posts édités</div>
+                </div>
+                <div style="background: var(--card); padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="font-size: 1.8rem; font-weight: 600; color: #2196F3;" id="list-scheduled-posts">0</div>
+                    <div style="color: var(--text-light); font-size: 0.85rem;">📅 Posts programmés</div>
+                </div>
+                <div style="background: var(--card); padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div style="font-size: 1.8rem; font-weight: 600; color: #FF9800;" id="list-pending-posts">0</div>
+                    <div style="color: var(--text-light); font-size: 0.85rem;">⏳ En attente</div>
+                </div>
+            </div>
+
             <div class="list-controls">
                 <div class="filter-group">
                     <button class="filter-btn active" data-theme="all" onclick="filterByTheme('all')">Tous</button>
                     <div id="theme-filters"></div>
                 </div>
             </div>
-            
+
             <!-- Quick add form -->
             <div class="post-card quick-add" style="border-left-color: var(--secondary); margin-bottom: 1rem; cursor: default;">
                 <form id="quick-add-form" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -980,37 +999,8 @@
                     </div>
                 </form>
             </div>
-            
-            <div class="posts-list" id="posts-list"></div>
-        </div>
 
-        <!-- Vue État -->
-        <div class="view" id="status-view">
-            <div style="margin-bottom: 2rem;">
-                <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem;">État d'avancement des posts</h2>
-                <p style="color: var(--text-light); font-size: 0.95rem;">Suivi de l'état de chaque post</p>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-                <div style="background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                    <div style="font-size: 2rem; font-weight: 600; color: var(--primary);" id="total-posts">0</div>
-                    <div style="color: var(--text-light); font-size: 0.9rem;">Total des posts</div>
-                </div>
-                <div style="background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                    <div style="font-size: 2rem; font-weight: 600; color: #4CAF50;" id="edited-posts">0</div>
-                    <div style="color: var(--text-light); font-size: 0.9rem;">✏️ Posts édités</div>
-                </div>
-                <div style="background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                    <div style="font-size: 2rem; font-weight: 600; color: #2196F3;" id="scheduled-posts">0</div>
-                    <div style="color: var(--text-light); font-size: 0.9rem;">📅 Posts programmés</div>
-                </div>
-                <div style="background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                    <div style="font-size: 2rem; font-weight: 600; color: #FF9800;" id="pending-posts">0</div>
-                    <div style="color: var(--text-light); font-size: 0.9rem;">⏳ En attente</div>
-                </div>
-            </div>
-
-            <div id="status-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 1rem;"></div>
+            <div class="posts-list" id="posts-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 1rem;"></div>
         </div>
 
         <!-- Vue Thèmes -->
@@ -1387,7 +1377,6 @@
                         renderCalendar();
                         renderList();
                         renderThemes();
-                        renderStatusView();
                         updateThemeSelects();
                         updateThemeFilters();
                         updateSyncStatus('connected', 'Chargé depuis Drive ✓');
@@ -1450,7 +1439,6 @@
             renderCalendar();
             renderList();
             renderThemes();
-            renderStatusView();
             updateThemeSelects();
             updateThemeFilters();
 
@@ -1884,24 +1872,35 @@
 
         // List functions
         function renderList() {
+            // Update statistics
+            const totalPosts = data.posts.length;
+            const editedPosts = data.posts.filter(p => p.edited).length;
+            const scheduledPosts = data.posts.filter(p => p.scheduled).length;
+            const pendingPosts = data.posts.filter(p => !p.edited && !p.scheduled).length;
+
+            document.getElementById('list-total-posts').textContent = totalPosts;
+            document.getElementById('list-edited-posts').textContent = editedPosts;
+            document.getElementById('list-scheduled-posts').textContent = scheduledPosts;
+            document.getElementById('list-pending-posts').textContent = pendingPosts;
+
             const list = document.getElementById('posts-list');
             let posts = [...data.posts].sort((a, b) => {
                 // Posts sans date en premier, puis par date
                 if (!a.date && !b.date) return a.id - b.id;
-                if (!a.date) return -1;
-                if (!b.date) return 1;
+                if (!a.date) return 1;
+                if (!b.date) return -1;
                 return new Date(a.date) - new Date(b.date);
             });
-            
+
             if (currentFilter !== 'all') {
                 posts = posts.filter(p => p.themeId === parseInt(currentFilter));
             }
-            
+
             if (posts.length === 0) {
-                list.innerHTML = '<div class="empty-state"><p>Aucun post pour le moment</p></div>';
+                list.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;"><p>Aucun post pour le moment</p></div>';
                 return;
             }
-            
+
             list.innerHTML = '';
             posts.forEach(post => {
                 const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
@@ -1910,36 +1909,67 @@
                 card.draggable = true;
                 card.dataset.postId = post.id;
                 card.style.borderLeftColor = theme ? theme.color : '#b8926a';
-                
+                card.style.cursor = 'default';
+                card.style.padding = '1rem 1rem 1rem 1.5rem';
+
+                const dateDisplay = post.date ?
+                    new Date(post.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) :
+                    'Non planifié';
+
                 const linkedPosts = post.linkedTo ? post.linkedTo.map(id => {
                     const linked = data.posts.find(p => p.id === id);
                     return linked ? `#${id}` : null;
                 }).filter(Boolean).join(', ') : '';
-                
+
                 card.innerHTML = `
-                    <div class="post-header">
-                        <div style="flex: 1;">
-                            <div class="post-title-display">${post.title}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem; margin-bottom: 0.75rem;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;">${post.title}</div>
+                            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-light);">📅 ${dateDisplay}</span>
+                                ${theme ? `<span class="post-theme" style="background: ${theme.color}; padding: 0.2rem 0.6rem; font-size: 0.75rem;">${theme.name}</span>` : ''}
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; user-select: none;">
+                                    <input type="checkbox"
+                                           ${post.edited ? 'checked' : ''}
+                                           onchange="togglePostStatus(${post.id}, 'edited')"
+                                           style="width: 15px; height: 15px; cursor: pointer; accent-color: #4CAF50;">
+                                    <span style="color: ${post.edited ? '#4CAF50' : 'var(--text-light)'}; font-weight: ${post.edited ? '600' : '400'};">✏️ Édité</span>
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; user-select: none;">
+                                    <input type="checkbox"
+                                           ${post.scheduled ? 'checked' : ''}
+                                           onchange="togglePostStatus(${post.id}, 'scheduled')"
+                                           style="width: 15px; height: 15px; cursor: pointer; accent-color: #2196F3;">
+                                    <span style="color: ${post.scheduled ? '#2196F3' : 'var(--text-light)'}; font-weight: ${post.scheduled ? '600' : '400'};">📅 Programmé</span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="post-actions">
+                        <div class="post-actions" style="flex-shrink: 0;">
                             ${post.caption ? `<button class="icon-btn" onclick="copyCaption(${post.id})" title="Copier caption">📋</button>` : ''}
                             <button class="icon-btn" onclick="editPost(${post.id})" title="Modifier">✏️</button>
                             <button class="icon-btn" onclick="deletePost(${post.id})" title="Supprimer">🗑️</button>
                         </div>
                     </div>
-                    ${post.caption ? `<div class="post-caption">${post.caption}</div>` : ''}
-                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                        ${theme ? `<span class="post-theme" style="background: ${theme.color}">${theme.name}</span>` : ''}
-                        ${linkedPosts ? `<span class="post-links">Lié à: ${linkedPosts}</span>` : ''}
-                    </div>
+                    ${post.caption ? `<div class="post-caption" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.5; margin-bottom: 0.5rem;">${post.caption}</div>` : ''}
+                    ${linkedPosts ? `<div style="font-size: 0.8rem; color: var(--text-light); font-style: italic;">Lié à: ${linkedPosts}</div>` : ''}
                 `;
-                
+
                 // Drag and drop events
                 card.addEventListener('dragstart', handleDragStart);
                 card.addEventListener('dragend', handleDragEnd);
-                
+
                 list.appendChild(card);
             });
+        }
+
+        // Toggle post status (used by both list and calendar views)
+        function togglePostStatus(postId, statusType) {
+            const post = data.posts.find(p => p.id === postId);
+            if (!post) return;
+
+            post[statusType] = !post[statusType];
+            saveData();
+            renderList();
         }
         
         // Drag and drop handlers
@@ -2017,91 +2047,6 @@
             });
         }
 
-        // Status view functions
-        function renderStatusView() {
-            const totalPosts = data.posts.length;
-            const editedPosts = data.posts.filter(p => p.edited).length;
-            const scheduledPosts = data.posts.filter(p => p.scheduled).length;
-            const pendingPosts = data.posts.filter(p => !p.edited && !p.scheduled).length;
-
-            document.getElementById('total-posts').textContent = totalPosts;
-            document.getElementById('edited-posts').textContent = editedPosts;
-            document.getElementById('scheduled-posts').textContent = scheduledPosts;
-            document.getElementById('pending-posts').textContent = pendingPosts;
-
-            const statusList = document.getElementById('status-list');
-
-            if (totalPosts === 0) {
-                statusList.innerHTML = '<div class="empty-state"><p>Aucun post pour le moment</p></div>';
-                return;
-            }
-
-            // Sort posts: scheduled first, then by date
-            let posts = [...data.posts].sort((a, b) => {
-                if (!a.date && !b.date) return a.id - b.id;
-                if (!a.date) return 1;
-                if (!b.date) return -1;
-                return new Date(a.date) - new Date(b.date);
-            });
-
-            statusList.innerHTML = '';
-
-            posts.forEach(post => {
-                const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.style.borderLeftColor = theme ? theme.color : '#b8926a';
-                card.style.cursor = 'default';
-                card.style.paddingLeft = '1.5rem';
-                card.style.padding = '1rem 1rem 1rem 1.5rem';
-
-                const dateDisplay = post.date ?
-                    new Date(post.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) :
-                    'Non planifié';
-
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 600; color: var(--primary); margin-bottom: 0.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${post.title}</div>
-                            <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem;">📅 ${dateDisplay}</div>
-                            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem; user-select: none;">
-                                    <input type="checkbox"
-                                           id="status-edited-${post.id}"
-                                           ${post.edited ? 'checked' : ''}
-                                           onchange="togglePostStatus(${post.id}, 'edited')"
-                                           style="width: 16px; height: 16px; cursor: pointer; accent-color: #4CAF50;">
-                                    <span style="color: ${post.edited ? '#4CAF50' : 'var(--text-light)'}; font-weight: ${post.edited ? '600' : '400'};">✏️ Édité</span>
-                                </label>
-                                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.9rem; user-select: none;">
-                                    <input type="checkbox"
-                                           id="status-scheduled-${post.id}"
-                                           ${post.scheduled ? 'checked' : ''}
-                                           onchange="togglePostStatus(${post.id}, 'scheduled')"
-                                           style="width: 16px; height: 16px; cursor: pointer; accent-color: #2196F3;">
-                                    <span style="color: ${post.scheduled ? '#2196F3' : 'var(--text-light)'}; font-weight: ${post.scheduled ? '600' : '400'};">📅 Programmé</span>
-                                </label>
-                                ${theme ? `<span class="post-theme" style="background: ${theme.color}; padding: 0.2rem 0.6rem; font-size: 0.75rem;">${theme.name}</span>` : ''}
-                            </div>
-                        </div>
-                        <button class="icon-btn" onclick="editPost(${post.id})" title="Modifier" style="flex-shrink: 0;">✏️</button>
-                    </div>
-                `;
-
-                statusList.appendChild(card);
-            });
-        }
-
-        // Toggle post status from status view
-        function togglePostStatus(postId, statusType) {
-            const post = data.posts.find(p => p.id === postId);
-            if (!post) return;
-
-            post[statusType] = !post[statusType];
-            saveData();
-            renderStatusView();
-        }
-
         // Post modal
         function openAddPostModal(date = '') {
             document.getElementById('post-modal-title').textContent = 'Nouveau post';
@@ -2139,7 +2084,6 @@
                 saveData();
                 renderCalendar();
                 renderList();
-                renderStatusView();
             }
         }
 
@@ -2177,7 +2121,6 @@
             closePostModal();
             renderCalendar();
             renderList();
-            renderStatusView();
         });
 
         // Theme modal
@@ -2274,7 +2217,6 @@
 
             renderCalendar();
             renderList();
-            renderStatusView();
         });
 
         function updateThemeSelects() {
@@ -2329,7 +2271,6 @@
                         renderCalendar();
                         renderList();
                         renderThemes();
-                        renderStatusView();
                         updateThemeSelects();
                         updateThemeFilters();
                         alert('Données importées avec succès !');
