@@ -921,7 +921,6 @@
                     <button class="btn btn-small" onclick="navigateCalendar(1)">→</button>
                 </div>
                 <div style="display: flex; gap: 1rem; align-items: center;">
-                    <button class="btn btn-small" id="view-toggle-btn" onclick="toggleCalendarView()">Vue 3 mois</button>
                     <button class="btn btn-secondary" onclick="openAddPostModal()">+ Nouveau post</button>
                     <button class="btn btn-secondary" onclick="exportData()">Exporter</button>
                     <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Importer</button>
@@ -932,25 +931,14 @@
                 💡 Glisse les posts depuis la sidebar vers le calendrier • Glisse les posts du calendrier vers la sidebar pour les retirer
             </div>
 
-            <!-- Vue 1 mois -->
-            <div id="single-month-view" style="display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem;">
-                <div class="calendar-grid" id="calendar-grid"></div>
+            <!-- Vue 3 mois -->
+            <div style="display: flex; gap: 1.5rem;">
+                <div style="flex: 1;">
+                    <div id="three-months-container"></div>
+                </div>
                 <div class="posts-sidebar">
                     <div class="sidebar-header">Posts à planifier</div>
                     <div id="sidebar-posts"></div>
-                </div>
-            </div>
-
-            <!-- Vue 3 mois -->
-            <div id="three-months-view" style="display: none;">
-                <div style="display: flex; gap: 1.5rem;">
-                    <div style="flex: 1;">
-                        <div id="three-months-container"></div>
-                    </div>
-                    <div class="posts-sidebar">
-                        <div class="sidebar-header">Posts à planifier</div>
-                        <div id="sidebar-posts-3months"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -1110,7 +1098,6 @@
 
         let currentDate = new Date();
         let currentFilter = 'all';
-        let isThreeMonthsView = false;
 
         // Initialize Google API
         function gapiLoaded() {
@@ -1391,7 +1378,7 @@
                     if (confirm('Charger les données depuis Google Drive ? Cela remplacera les données locales.')) {
                         data = driveData;
                         saveData();
-                        renderCalendar();
+                        renderThreeMonths();
                         renderList();
                         renderThemes();
                         updateThemeSelects();
@@ -1478,7 +1465,7 @@
         // Initialize
         function init() {
             loadData();
-            renderCalendar();
+            renderThreeMonths();
             renderList();
             renderThemes();
             updateThemeSelects();
@@ -1492,20 +1479,6 @@
             if (activeTabBtn) {
                 activeTabBtn.classList.add('active');
                 document.getElementById(lastActiveTab + '-view').classList.add('active');
-            }
-
-            // Restore calendar view (1 month or 3 months)
-            const savedCalendarView = localStorage.getItem('calendarView') || '1month';
-            if (savedCalendarView === '3months') {
-                isThreeMonthsView = true;
-                const toggleBtn = document.getElementById('view-toggle-btn');
-                const singleView = document.getElementById('single-month-view');
-                const threeView = document.getElementById('three-months-view');
-
-                toggleBtn.textContent = 'Vue 1 mois';
-                singleView.style.display = 'none';
-                threeView.style.display = 'block';
-                renderThreeMonths();
             }
 
             // Tab switching
@@ -1524,52 +1497,7 @@
         }
 
         // Calendar functions
-        function renderCalendar() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            
-            document.getElementById('current-month').textContent = 
-                new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-            
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-            
-            const grid = document.getElementById('calendar-grid');
-            grid.innerHTML = '';
-            
-            // Headers
-            ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].forEach(day => {
-                const header = document.createElement('div');
-                header.className = 'day-header';
-                header.textContent = day;
-                grid.appendChild(header);
-            });
-            
-            // Previous month days
-            const prevMonthDays = new Date(year, month, 0).getDate();
-            for (let i = startDay - 1; i >= 0; i--) {
-                const cell = createDayCell(prevMonthDays - i, month - 1, year, true);
-                grid.appendChild(cell);
-            }
-            
-            // Current month days
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const cell = createDayCell(day, month, year, false);
-                grid.appendChild(cell);
-            }
-            
-            // Next month days
-            const remainingCells = 42 - (startDay + lastDay.getDate());
-            for (let day = 1; day <= remainingCells; day++) {
-                const cell = createDayCell(day, month + 1, year, true);
-                grid.appendChild(cell);
-            }
-            
-            // Render sidebar posts
-            renderSidebarPosts();
-        }
-        
+
         function renderSidebarPosts() {
             const sidebar = document.getElementById('sidebar-posts');
             const unscheduledPosts = data.posts.filter(p => !p.date);
@@ -1629,13 +1557,7 @@
             if (post && post.date) {
                 post.date = null;
                 saveData();
-
-                // Re-render the correct view
-                if (isThreeMonthsView) {
-                    renderThreeMonths();
-                } else {
-                    renderCalendar();
-                }
+                renderThreeMonths();
                 renderList();
             }
 
@@ -1761,13 +1683,7 @@
             if (post) {
                 post.date = targetDate;
                 saveData();
-
-                // Re-render the correct view
-                if (isThreeMonthsView) {
-                    renderThreeMonths();
-                } else {
-                    renderCalendar();
-                }
+                renderThreeMonths();
                 renderList();
             }
 
@@ -1775,35 +1691,8 @@
         }
 
         function navigateCalendar(direction) {
-            if (isThreeMonthsView) {
-                currentDate.setMonth(currentDate.getMonth() + (direction * 3));
-                renderThreeMonths();
-            } else {
-                currentDate.setMonth(currentDate.getMonth() + direction);
-                renderCalendar();
-            }
-        }
-
-        function toggleCalendarView() {
-            isThreeMonthsView = !isThreeMonthsView;
-            const toggleBtn = document.getElementById('view-toggle-btn');
-            const singleView = document.getElementById('single-month-view');
-            const threeView = document.getElementById('three-months-view');
-
-            // Save the view preference
-            localStorage.setItem('calendarView', isThreeMonthsView ? '3months' : '1month');
-
-            if (isThreeMonthsView) {
-                toggleBtn.textContent = 'Vue 1 mois';
-                singleView.style.display = 'none';
-                threeView.style.display = 'block';
-                renderThreeMonths();
-            } else {
-                toggleBtn.textContent = 'Vue 3 mois';
-                singleView.style.display = 'grid';
-                threeView.style.display = 'none';
-                renderCalendar();
-            }
+            currentDate.setMonth(currentDate.getMonth() + (direction * 4));
+            renderThreeMonths();
         }
 
         function renderThreeMonths() {
@@ -1812,7 +1701,7 @@
 
             // Update the header to show the range
             const firstMonth = new Date(baseYear, baseMonth);
-            const lastMonth = new Date(baseYear, baseMonth + 2);
+            const lastMonth = new Date(baseYear, baseMonth + 3);
             document.getElementById('current-month').textContent =
                 firstMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) +
                 ' - ' +
@@ -1821,8 +1710,8 @@
             const container = document.getElementById('three-months-container');
             container.innerHTML = '';
 
-            // Render each month
-            for (let i = 0; i < 3; i++) {
+            // Render each month (4 months)
+            for (let i = 0; i < 4; i++) {
                 const monthDate = new Date(baseYear, baseMonth + i);
                 const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
@@ -1868,7 +1757,7 @@
             }
 
             // Render sidebar
-            renderSidebarPostsForThreeMonths();
+            renderSidebarPosts();
         }
 
         function renderFullMonthInGrid(grid, monthDate, monthIndex = 0) {
@@ -1920,104 +1809,6 @@
             for (let day = 1; day <= remainingCells; day++) {
                 const cell = createDayCell(day, month + 1, year, true);
                 grid.appendChild(cell);
-            }
-        }
-
-        function renderSingleMonthInContainer(date, containerIndex) {
-            const year = date.getFullYear();
-            const month = date.getMonth();
-            const container = document.getElementById(`month-container-${containerIndex}`);
-
-            const monthName = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-
-            let html = `
-                <div class="month-container">
-                    <div class="month-title">${monthName}</div>
-                    <div class="mini-calendar-grid">
-            `;
-
-            // Headers
-            ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach(day => {
-                html += `<div class="mini-day-header">${day}</div>`;
-            });
-
-            // Previous month days
-            const prevMonthDays = new Date(year, month, 0).getDate();
-            for (let i = startDay - 1; i >= 0; i--) {
-                html += createMiniDayCell(prevMonthDays - i, month - 1, year, true);
-            }
-
-            // Current month days
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                html += createMiniDayCell(day, month, year, false);
-            }
-
-            // Next month days
-            const remainingCells = 42 - (startDay + lastDay.getDate());
-            for (let day = 1; day <= remainingCells; day++) {
-                html += createMiniDayCell(day, month + 1, year, true);
-            }
-
-            html += '</div></div>';
-            container.innerHTML = html;
-
-            // Add event listeners after rendering
-            container.querySelectorAll('.mini-day-cell').forEach(cell => {
-                cell.addEventListener('dragover', handleDragOver);
-                cell.addEventListener('drop', handleDrop);
-                cell.addEventListener('dragleave', handleDragLeave);
-                cell.addEventListener('click', () => {
-                    openAddPostModal(cell.dataset.date);
-                });
-            });
-        }
-
-        function createMiniDayCell(day, month, year, isOtherMonth) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayPosts = data.posts.filter(p => p.date === dateStr);
-
-            const otherMonthClass = isOtherMonth ? 'other-month' : '';
-            const postIndicators = dayPosts.length > 0 ?
-                `<div>${dayPosts.slice(0, 5).map(() => '<span class="mini-post-indicator"></span>').join('')}${dayPosts.length > 5 ? '...' : ''}</div>` : '';
-
-            return `
-                <div class="mini-day-cell ${otherMonthClass}" data-date="${dateStr}">
-                    <div class="mini-day-number">${day}</div>
-                    ${postIndicators}
-                </div>
-            `;
-        }
-
-        function renderSidebarPostsForThreeMonths() {
-            const sidebar = document.getElementById('sidebar-posts-3months');
-            const unscheduledPosts = data.posts.filter(p => !p.date);
-
-            if (unscheduledPosts.length === 0) {
-                sidebar.innerHTML = '<div style="color: var(--text-light); font-size: 0.9rem; text-align: center; padding: 1rem;">Tous les posts sont planifiés ✓</div>';
-            } else {
-                sidebar.innerHTML = '';
-                unscheduledPosts.forEach(post => {
-                    const theme = post.themeId ? data.themes.find(t => t.id === post.themeId) : null;
-                    const postDiv = document.createElement('div');
-                    postDiv.className = 'sidebar-post';
-                    postDiv.draggable = true;
-                    postDiv.dataset.postId = post.id;
-                    postDiv.style.borderLeftColor = theme ? theme.color : '#b8926a';
-
-                    postDiv.innerHTML = `
-                        <div class="sidebar-post-title">${post.title}</div>
-                        ${theme ? `<span class="sidebar-post-theme" style="background: ${theme.color}">${theme.name}</span>` : ''}
-                    `;
-
-                    postDiv.addEventListener('dragstart', handleDragStart);
-                    postDiv.addEventListener('dragend', handleDragEnd);
-
-                    sidebar.appendChild(postDiv);
-                });
             }
         }
 
@@ -2274,7 +2065,7 @@
             if (confirm('Supprimer ce post ?')) {
                 data.posts = data.posts.filter(p => p.id !== id);
                 saveData();
-                renderCalendar();
+                renderThreeMonths();
                 renderList();
             }
         }
@@ -2311,7 +2102,7 @@
 
             saveData();
             closePostModal();
-            renderCalendar();
+            renderThreeMonths();
             renderList();
         });
 
@@ -2376,7 +2167,7 @@
             renderThemes();
             updateThemeSelects();
             updateThemeFilters();
-            renderCalendar();
+            renderThreeMonths();
             renderList();
         });
 
@@ -2407,7 +2198,7 @@
             document.getElementById('quick-add-form').reset();
             document.getElementById('quick-title').focus();
 
-            renderCalendar();
+            renderThreeMonths();
             renderList();
         });
 
@@ -2460,7 +2251,7 @@
                     if (confirm('Importer ces données ? Cela remplacera toutes tes données actuelles.')) {
                         data = imported;
                         saveData();
-                        renderCalendar();
+                        renderThreeMonths();
                         renderList();
                         renderThemes();
                         updateThemeSelects();
