@@ -1494,6 +1494,20 @@
                 document.getElementById(lastActiveTab + '-view').classList.add('active');
             }
 
+            // Restore calendar view (1 month or 3 months)
+            const savedCalendarView = localStorage.getItem('calendarView') || '1month';
+            if (savedCalendarView === '3months') {
+                isThreeMonthsView = true;
+                const toggleBtn = document.getElementById('view-toggle-btn');
+                const singleView = document.getElementById('single-month-view');
+                const threeView = document.getElementById('three-months-view');
+
+                toggleBtn.textContent = 'Vue 1 mois';
+                singleView.style.display = 'none';
+                threeView.style.display = 'block';
+                renderThreeMonths();
+            }
+
             // Tab switching
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -1607,18 +1621,24 @@
             e.preventDefault();
             const sidebar = document.getElementById('sidebar-posts');
             sidebar.style.background = '';
-            
+
             if (!draggedPost) return;
-            
+
             const post = data.posts.find(p => p.id === draggedPost);
-            
+
             if (post && post.date) {
                 post.date = null;
                 saveData();
-                renderCalendar();
+
+                // Re-render the correct view
+                if (isThreeMonthsView) {
+                    renderThreeMonths();
+                } else {
+                    renderCalendar();
+                }
                 renderList();
             }
-            
+
             draggedPost = null;
         }
 
@@ -1741,7 +1761,13 @@
             if (post) {
                 post.date = targetDate;
                 saveData();
-                renderCalendar();
+
+                // Re-render the correct view
+                if (isThreeMonthsView) {
+                    renderThreeMonths();
+                } else {
+                    renderCalendar();
+                }
                 renderList();
             }
 
@@ -1763,6 +1789,9 @@
             const toggleBtn = document.getElementById('view-toggle-btn');
             const singleView = document.getElementById('single-month-view');
             const threeView = document.getElementById('three-months-view');
+
+            // Save the view preference
+            localStorage.setItem('calendarView', isThreeMonthsView ? '3months' : '1month');
 
             if (isThreeMonthsView) {
                 toggleBtn.textContent = 'Vue 1 mois';
