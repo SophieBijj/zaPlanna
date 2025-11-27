@@ -36,66 +36,145 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1rem 2rem 2rem 2rem;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            animation: fadeIn 0.6s ease;
+        /* Top Navigation Bar */
+        .top-nav {
+            background: var(--card);
+            border-bottom: 2px solid var(--border);
+            padding: 0.75rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        h1 {
+        .nav-brand {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 3rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 0.5rem;
+            white-space: nowrap;
         }
 
-        .subtitle {
-            font-size: 1rem;
+        .nav-brand span {
+            font-size: 0.75rem;
+            font-weight: 400;
             color: var(--text-light);
-            font-weight: 300;
+            margin-left: 0.5rem;
         }
 
         .tabs {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--border);
-            animation: slideDown 0.5s ease;
+            gap: 0.5rem;
+            flex: 1;
         }
 
         .tab {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.2rem;
-            padding: 0.75rem 1.5rem;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
             background: none;
             border: none;
             cursor: pointer;
             color: var(--text-light);
             transition: all 0.3s ease;
-            position: relative;
+            border-radius: 8px;
         }
 
         .tab:hover {
             color: var(--primary);
+            background: var(--bg);
         }
 
         .tab.active {
-            color: var(--primary);
-            font-weight: 600;
+            color: white;
+            background: var(--primary);
+            font-weight: 500;
         }
 
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-status:hover {
+            background: var(--bg);
+        }
+
+        .nav-status-text {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .nav-add-btn {
+            padding: 0.5rem 1rem;
             background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-add-btn:hover {
+            background: #c16559;
+            transform: translateY(-1px);
+        }
+
+        /* Status Popup */
+        .status-popup {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 1rem;
+            min-width: 250px;
+            z-index: 1000;
+        }
+
+        .status-popup.active {
+            display: block;
+        }
+
+        .status-popup-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .status-popup-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Work Sans', sans-serif;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .status-popup-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
         }
 
         .view {
@@ -110,19 +189,10 @@
         /* Calendrier */
         .calendar-controls {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            background: var(--card);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .calendar-nav {
-            display: flex;
             gap: 1rem;
             align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
         }
 
         .btn {
@@ -158,7 +228,7 @@
 
         .current-month {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: var(--primary);
         }
@@ -630,30 +700,7 @@
             margin-bottom: 1rem;
         }
 
-        /* Google Drive Sync */
-        .sync-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            background: var(--card);
-            padding: 1rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-            z-index: 500;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            max-width: 250px;
-        }
-
-        .sync-status {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
+        /* Sync indicator */
         .sync-indicator {
             width: 8px;
             height: 8px;
@@ -673,35 +720,6 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
-        }
-
-        #google-signin-btn {
-            display: none;
-        }
-
-        .file-id-input {
-            display: none;
-            margin-top: 0.5rem;
-        }
-
-        .file-id-input input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .file-id-input input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .file-id-help {
-            font-size: 0.75rem;
-            color: var(--text-light);
-            font-style: italic;
         }
 
         /* Three months view */
@@ -780,25 +798,25 @@
 
         /* Responsive */
         @media (max-width: 1200px) {
-            #three-months-view > div:first-child {
-                grid-template-columns: 1fr !important;
-            }
-
             .month-container {
                 margin-bottom: 1rem;
             }
         }
 
         @media (max-width: 768px) {
-            .sync-container {
-                top: 0.5rem;
-                right: 0.5rem;
-                padding: 0.75rem;
-                max-width: 200px;
+            .top-nav {
+                padding: 0.5rem 1rem;
+                gap: 0.5rem;
+                flex-wrap: wrap;
             }
 
-            .sync-status {
-                font-size: 0.75rem;
+            .nav-brand span {
+                display: none;
+            }
+
+            .tabs {
+                order: 3;
+                width: 100%;
             }
 
             .container {
@@ -879,32 +897,11 @@
     </style>
 </head>
 <body>
-    <!-- Google Drive Sync Widget -->
-    <div class="sync-container">
-        <div class="sync-status">
-            <div class="sync-indicator" id="sync-indicator"></div>
-            <span id="sync-status-text">Non connecté</span>
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="nav-brand">
+            zaPlanna <span>Posts pensés, cerveau repos</span>
         </div>
-
-        <!-- Connection section (shown when not connected) -->
-        <div id="connection-section">
-            <input type="text" id="drive-file-id-input" placeholder="ID ou URL du fichier Drive..." style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 6px; font-size: 0.85rem; margin-bottom: 0.5rem;">
-            <button class="btn btn-small" onclick="connectToFile()" style="width: 100%;">Connecter Drive</button>
-            <div class="file-id-help">💡 Colle l'ID ou l'URL de ton fichier JSON sur Drive</div>
-        </div>
-
-        <!-- Connected section (shown when connected) -->
-        <div id="connected-section" style="display: none;">
-            <button class="btn btn-small" id="sync-btn" onclick="syncWithDrive()" style="width: 100%; margin-bottom: 0.5rem;">Synchroniser</button>
-            <button class="btn btn-small" id="disconnect-btn" onclick="disconnectDrive()" style="width: 100%;">Déconnecter</button>
-        </div>
-    </div>
-
-    <div class="container">
-        <header>
-            <h1>Planification Instagram</h1>
-            <p class="subtitle">Organise tes contenus avec fluidité</p>
-        </header>
 
         <div class="tabs">
             <button class="tab active" data-view="calendar">Calendrier</button>
@@ -912,23 +909,43 @@
             <button class="tab" data-view="themes">Thèmes</button>
         </div>
 
-        <!-- Vue Calendrier -->
-        <div class="view active" id="calendar-view">
-            <div class="calendar-controls">
-                <div class="calendar-nav">
-                    <button class="btn btn-small" onclick="navigateCalendar(-1)">←</button>
-                    <span class="current-month" id="current-month"></span>
-                    <button class="btn btn-small" onclick="navigateCalendar(1)">→</button>
+        <div class="nav-status" onclick="toggleStatusPopup()">
+            <div class="sync-indicator" id="sync-indicator"></div>
+            <span class="nav-status-text" id="sync-status-text">Non connecté</span>
+
+            <!-- Status Popup -->
+            <div class="status-popup" id="status-popup">
+                <!-- Connection section (shown when not connected) -->
+                <div id="connection-section">
+                    <input type="text" id="drive-file-id-input" placeholder="ID ou URL du fichier Drive..." style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 6px; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    <button class="btn btn-small" onclick="connectToFile()" style="width: 100%; margin-bottom: 0.5rem;">Connecter Drive</button>
+                    <div class="file-id-help" style="font-size: 0.75rem; color: var(--text-light); font-style: italic;">💡 Colle l'ID ou l'URL de ton fichier JSON sur Drive</div>
                 </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <button class="btn btn-secondary" onclick="openAddPostModal()">+ Nouveau post</button>
-                    <button class="btn btn-secondary" onclick="exportData()">Exporter</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Importer</button>
+
+                <!-- Connected section (shown when connected) -->
+                <div id="connected-section" style="display: none;">
+                    <div class="status-popup-actions">
+                        <button class="status-popup-btn" onclick="syncWithDrive()">🔄 Synchroniser</button>
+                        <button class="status-popup-btn" onclick="exportData()">📥 Exporter</button>
+                        <button class="status-popup-btn" onclick="document.getElementById('import-file').click()">📤 Importer</button>
+                        <button class="status-popup-btn" onclick="disconnectDrive()">🔌 Déconnecter</button>
+                    </div>
                     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
                 </div>
             </div>
-            <div style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem; font-style: italic;">
-                💡 Glisse les posts depuis la sidebar vers le calendrier • Glisse les posts du calendrier vers la sidebar pour les retirer
+        </div>
+
+        <button class="nav-add-btn" onclick="openAddPostModal()">+ Nouveau post</button>
+    </div>
+
+    <div class="container">
+
+        <!-- Vue Calendrier -->
+        <div class="view active" id="calendar-view">
+            <div class="calendar-controls">
+                <button class="btn btn-small" onclick="navigateCalendar(-1)">←</button>
+                <span class="current-month" id="current-month"></span>
+                <button class="btn btn-small" onclick="navigateCalendar(1)">→</button>
             </div>
 
             <!-- Vue 3 mois -->
@@ -2264,6 +2281,22 @@
             };
             reader.readAsText(file);
         }
+
+        // Toggle status popup
+        function toggleStatusPopup(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('status-popup');
+            popup.classList.toggle('active');
+        }
+
+        // Close popup when clicking outside
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('status-popup');
+            const navStatus = document.querySelector('.nav-status');
+            if (popup && !navStatus.contains(e.target)) {
+                popup.classList.remove('active');
+            }
+        });
 
         // Close modals on outside click
         document.querySelectorAll('.modal').forEach(modal => {
