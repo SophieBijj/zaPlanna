@@ -1753,7 +1753,7 @@
         }
 
         function navigateCalendar(direction) {
-            currentDate.setMonth(currentDate.getMonth() + (direction * 6));
+            currentDate.setMonth(currentDate.getMonth() + direction);
             renderThreeMonths();
         }
 
@@ -1763,7 +1763,7 @@
 
             // Update the header to show the range
             const firstMonth = new Date(baseYear, baseMonth);
-            const lastMonth = new Date(baseYear, baseMonth + 5);
+            const lastMonth = new Date(baseYear, baseMonth + 3);
             document.getElementById('current-month').textContent =
                 firstMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) +
                 ' - ' +
@@ -1772,8 +1772,8 @@
             const container = document.getElementById('three-months-container');
             container.innerHTML = '';
 
-            // Render each month (6 months)
-            for (let i = 0; i < 6; i++) {
+            // Render each month (4 months)
+            for (let i = 0; i < 4; i++) {
                 const monthDate = new Date(baseYear, baseMonth + i);
                 const monthName = monthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
