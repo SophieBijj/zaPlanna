@@ -1950,7 +1950,15 @@
                             <button class="icon-btn" onclick="deletePost(${post.id})" title="Supprimer">🗑️</button>
                         </div>
                     </div>
-                    ${post.caption ? `<div class="post-caption" style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.5; margin-bottom: 0.5rem;">${post.caption}</div>` : ''}
+                    <div contenteditable="true"
+                         data-post-id="${post.id}"
+                         onblur="updatePostCaption(${post.id}, this.innerText)"
+                         onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.blur(); }"
+                         class="post-caption"
+                         style="overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.5; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 6px; border: 1px solid transparent; cursor: text; transition: all 0.2s ease;"
+                         onfocus="this.style.borderColor='var(--accent)'; this.style.background='#fafaf8'; this.style.webkitLineClamp='unset'; this.style.display='block';"
+                         onblur="this.style.borderColor='transparent'; this.style.background='transparent'; this.style.webkitLineClamp='3'; this.style.display='-webkit-box'; updatePostCaption(${post.id}, this.innerText);"
+                         placeholder="Clique pour ajouter une caption...">${post.caption || ''}</div>
                     ${linkedPosts ? `<div style="font-size: 0.8rem; color: var(--text-light); font-style: italic;">Lié à: ${linkedPosts}</div>` : ''}
                 `;
 
@@ -1970,6 +1978,18 @@
             post[statusType] = !post[statusType];
             saveData();
             renderList();
+        }
+
+        // Update post caption inline
+        function updatePostCaption(postId, newCaption) {
+            const post = data.posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const trimmedCaption = newCaption.trim();
+            if (post.caption !== trimmedCaption) {
+                post.caption = trimmedCaption;
+                saveData();
+            }
         }
         
         // Drag and drop handlers
