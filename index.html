@@ -275,7 +275,7 @@
 
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(7, minmax(0, 1fr));
             gap: 0.5rem;
             margin-bottom: 2rem;
         }
@@ -366,6 +366,8 @@
             transition: all 0.3s ease;
             border: 2px solid transparent;
             position: relative;
+            overflow: hidden;
+            min-width: 0;
         }
 
         .day-cell:hover {
@@ -388,6 +390,7 @@
             color: var(--primary);
             margin-bottom: 0.25rem;
             font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
         .day-posts {
@@ -1641,12 +1644,12 @@
                 const themeColor = theme ? theme.color : '#b8926a';
 
                 cell.innerHTML = `
-                    <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem;">
+                    <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem; min-width: 0; overflow: hidden;">
                         <div class="day-number" style="margin-bottom: 0;">${day}</div>
                         <div draggable="true"
                              data-post-id="${firstPost.id}"
                              class="inline-post-title"
-                             style="font-size: 0.75rem; color: white; background: ${themeColor}; padding: 0.2rem 0.4rem; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; cursor: grab;">${titlePreview}</div>
+                             style="font-size: 0.75rem; color: white; background: ${themeColor}; padding: 0.2rem 0.4rem; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; cursor: grab;">${titlePreview}</div>
                     </div>
                 `;
 
