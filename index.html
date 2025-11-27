@@ -1484,13 +1484,27 @@
             updateThemeSelects();
             updateThemeFilters();
 
+            // Restore last active tab
+            const lastActiveTab = localStorage.getItem('activeTab') || 'calendar';
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const activeTabBtn = document.querySelector(`.tab[data-view="${lastActiveTab}"]`);
+            if (activeTabBtn) {
+                activeTabBtn.classList.add('active');
+                document.getElementById(lastActiveTab + '-view').classList.add('active');
+            }
+
             // Tab switching
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
                     tab.classList.add('active');
-                    document.getElementById(tab.dataset.view + '-view').classList.add('active');
+                    const viewName = tab.dataset.view;
+                    document.getElementById(viewName + '-view').classList.add('active');
+
+                    // Save active tab to localStorage
+                    localStorage.setItem('activeTab', viewName);
                 });
             });
         }
@@ -1623,13 +1637,32 @@
                 const firstPost = dayPosts[0];
                 const theme = firstPost.themeId ? data.themes.find(t => t.id === firstPost.themeId) : null;
                 const titlePreview = firstPost.title.substring(0, 20) + (firstPost.title.length > 20 ? '...' : '');
+                const themeColor = theme ? theme.color : '#b8926a';
 
                 cell.innerHTML = `
                     <div style="display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.25rem;">
                         <div class="day-number" style="margin-bottom: 0;">${day}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">${titlePreview}</div>
+                        <div draggable="true"
+                             data-post-id="${firstPost.id}"
+                             class="inline-post-title"
+                             style="font-size: 0.75rem; color: white; background: ${themeColor}; padding: 0.2rem 0.4rem; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; cursor: grab;">${titlePreview}</div>
                     </div>
                 `;
+
+                // Add drag & drop to the first post title
+                const inlineTitle = cell.querySelector('.inline-post-title');
+                inlineTitle.onclick = (e) => {
+                    e.stopPropagation();
+                    editPost(firstPost.id);
+                };
+                inlineTitle.addEventListener('dragstart', (e) => {
+                    draggedPost = firstPost.id;
+                    e.stopPropagation();
+                    inlineTitle.style.opacity = '0.4';
+                });
+                inlineTitle.addEventListener('dragend', (e) => {
+                    inlineTitle.style.opacity = '1';
+                });
 
                 // If there are more posts, create mini-posts for them
                 if (dayPosts.length > 1) {
@@ -1665,12 +1698,6 @@
                     });
                     cell.appendChild(postsDiv);
                 }
-
-                // Make the first post title clickable to edit
-                cell.querySelector('div[style*="text-overflow"]').onclick = (e) => {
-                    e.stopPropagation();
-                    editPost(firstPost.id);
-                };
             } else {
                 cell.innerHTML = `<div class="day-number">${day}</div>`;
             }
