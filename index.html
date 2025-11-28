@@ -255,37 +255,24 @@
             font-weight: 500;
         }
 
-        /* Desktop Drive Actions */
-        .nav-drive-actions {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
-        }
-
-        .nav-drive-status {
+        /* Desktop Drive Button (similar to mobile but styled for desktop) */
+        .nav-drive-button {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        .nav-btn {
-            padding: 0.5rem 0.85rem;
+            padding: 0.5rem 1rem;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
-            font-family: 'Work Sans', sans-serif;
             font-size: 0.85rem;
-            color: var(--text);
+            color: var(--text-light);
             transition: all 0.3s ease;
-            white-space: nowrap;
         }
 
-        .nav-btn:hover {
-            background: var(--primary);
-            color: white;
+        .nav-drive-button:hover {
+            background: var(--card);
             border-color: var(--primary);
         }
 
@@ -1075,24 +1062,33 @@
 
         <div style="flex: 1;"></div>
 
-        <!-- Desktop Drive Actions (hidden on mobile) -->
-        <div class="nav-drive-actions desktop-only">
-            <div class="nav-drive-status" id="nav-drive-status-desktop">
-                <div class="sync-indicator" id="sync-indicator-desktop"></div>
-                <span id="sync-status-text-desktop">Non connecté</span>
+        <!-- Desktop Drive Button with Popup (hidden on mobile) -->
+        <div class="nav-drive-button desktop-only" onclick="toggleStatusPopupDesktop(event)">
+            <div class="sync-indicator" id="sync-indicator-desktop"></div>
+            <span id="sync-status-text-desktop">Non connecté</span>
+
+            <!-- Desktop Status Popup -->
+            <div class="status-popup" id="status-popup-desktop">
+                <!-- Connection section (shown when not connected) -->
+                <div id="connection-section-desktop">
+                    <input type="text" id="drive-file-id-input-desktop" placeholder="ID ou URL du fichier Drive..." style="width: 100%; padding: 0.5rem; border: 2px solid var(--border); border-radius: 6px; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                    <button class="btn btn-small" onclick="connectToFileDesktop(event)" style="width: 100%; margin-bottom: 0.5rem;">Connecter Drive</button>
+                    <div class="file-id-help" style="font-size: 0.75rem; color: var(--text-light); font-style: italic;">💡 Colle l'ID ou l'URL de ton fichier JSON sur Drive</div>
+                </div>
+
+                <!-- Connected section (shown when connected) -->
+                <div id="connected-section-desktop" style="display: none;">
+                    <div class="status-popup-actions">
+                        <button class="status-popup-btn" onclick="syncWithDrive()">🔄 Synchroniser</button>
+                        <button class="status-popup-btn" onclick="exportData()">📥 Exporter</button>
+                        <button class="status-popup-btn" onclick="document.getElementById('import-file').click()">📤 Importer</button>
+                        <button class="status-popup-btn" onclick="disconnectDrive()">🔌 Déconnecter</button>
+                    </div>
+                </div>
             </div>
-
-            <!-- Not connected buttons -->
-            <button class="nav-btn" id="connect-btn-desktop" onclick="openConnectDialog()" style="display: block;">Connecter Drive</button>
-
-            <!-- Connected buttons -->
-            <button class="nav-btn" id="sync-btn-desktop" onclick="syncWithDrive()" style="display: none;">🔄 Sync</button>
-            <button class="nav-btn" id="export-btn-desktop" onclick="exportData()" style="display: none;">📥 Export</button>
-            <button class="nav-btn" id="import-btn-desktop" onclick="document.getElementById('import-file').click()" style="display: none;">📤 Import</button>
-            <button class="nav-btn" id="disconnect-btn-desktop" onclick="disconnectDrive()" style="display: none;">Déconnecter</button>
-
-            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
         </div>
+
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
 
         <!-- Mobile Drive Icon & Dropdown (hidden on desktop) -->
         <div class="nav-drive-icon mobile-only" onclick="toggleStatusPopup(event)">
@@ -1370,18 +1366,11 @@
             document.getElementById('connection-section').style.display = 'none';
             document.getElementById('connected-section').style.display = 'block';
 
-            // Desktop buttons
-            const connectBtn = document.getElementById('connect-btn-desktop');
-            const syncBtn = document.getElementById('sync-btn-desktop');
-            const exportBtn = document.getElementById('export-btn-desktop');
-            const importBtn = document.getElementById('import-btn-desktop');
-            const disconnectBtn = document.getElementById('disconnect-btn-desktop');
-
-            if (connectBtn) connectBtn.style.display = 'none';
-            if (syncBtn) syncBtn.style.display = 'block';
-            if (exportBtn) exportBtn.style.display = 'block';
-            if (importBtn) importBtn.style.display = 'block';
-            if (disconnectBtn) disconnectBtn.style.display = 'block';
+            // Desktop popup
+            const connectionSectionDesktop = document.getElementById('connection-section-desktop');
+            const connectedSectionDesktop = document.getElementById('connected-section-desktop');
+            if (connectionSectionDesktop) connectionSectionDesktop.style.display = 'none';
+            if (connectedSectionDesktop) connectedSectionDesktop.style.display = 'block';
         }
 
         function showConnectionState() {
@@ -1389,26 +1378,53 @@
             document.getElementById('connection-section').style.display = 'block';
             document.getElementById('connected-section').style.display = 'none';
 
-            // Desktop buttons
-            const connectBtn = document.getElementById('connect-btn-desktop');
-            const syncBtn = document.getElementById('sync-btn-desktop');
-            const exportBtn = document.getElementById('export-btn-desktop');
-            const importBtn = document.getElementById('import-btn-desktop');
-            const disconnectBtn = document.getElementById('disconnect-btn-desktop');
-
-            if (connectBtn) connectBtn.style.display = 'block';
-            if (syncBtn) syncBtn.style.display = 'none';
-            if (exportBtn) exportBtn.style.display = 'none';
-            if (importBtn) importBtn.style.display = 'none';
-            if (disconnectBtn) disconnectBtn.style.display = 'none';
+            // Desktop popup
+            const connectionSectionDesktop = document.getElementById('connection-section-desktop');
+            const connectedSectionDesktop = document.getElementById('connected-section-desktop');
+            if (connectionSectionDesktop) connectionSectionDesktop.style.display = 'block';
+            if (connectedSectionDesktop) connectedSectionDesktop.style.display = 'none';
         }
 
-        function openConnectDialog() {
-            // Prompt user for file ID
-            const fileId = prompt('Colle l\'ID ou l\'URL de ton fichier JSON sur Google Drive:');
-            if (fileId) {
-                document.getElementById('drive-file-id-input').value = fileId;
-                connectToFile();
+        // Desktop version of connectToFile
+        async function connectToFileDesktop(event) {
+            if (event) event.stopPropagation();
+            const input = document.getElementById('drive-file-id-input-desktop').value.trim();
+
+            if (!input) {
+                alert('Entre l\'ID ou l\'URL du fichier Google Drive\n\nTu peux trouver l\'ID dans l\'URL de ton fichier Drive:\nhttps://drive.google.com/file/d/[ID_ICI]/view');
+                return;
+            }
+
+            // Save the file ID temporarily
+            const fileId = extractFileId(input);
+            localStorage.setItem('pendingDriveFileId', fileId);
+
+            // Check if we need to authenticate first
+            if (!gapiInited || !gisInited) {
+                alert('Chargement de Google Drive en cours... Réessaie dans quelques secondes.');
+                return;
+            }
+
+            if (!accessToken) {
+                // Not authenticated yet, trigger OAuth
+                updateSyncStatus('syncing', 'Connexion...');
+                handleAuthClick();
+            } else {
+                // Already authenticated, save the file ID and load data
+                driveFileId = fileId;
+                localStorage.setItem('gdriveFileId', driveFileId);
+                updateSyncStatus('syncing', 'Connexion au fichier...');
+
+                try {
+                    await readFromDrive();
+                    updateSyncStatus('connected', 'Connecté au fichier');
+                    showConnectedState();
+                    document.getElementById('drive-file-id-input-desktop').value = '';
+                } catch (error) {
+                    console.error('Failed to connect:', error);
+                    updateSyncStatus('disconnected', 'Erreur de connexion');
+                    alert('Erreur de connexion au fichier. Vérifie l\'ID et les permissions.');
+                }
             }
         }
 
@@ -2544,7 +2560,14 @@
             if (event) event.stopPropagation();
             const popup = document.getElementById('status-popup');
             const viewDropdown = document.getElementById('view-dropdown');
-            viewDropdown.classList.remove('active');
+            if (viewDropdown) viewDropdown.classList.remove('active');
+            popup.classList.toggle('active');
+        }
+
+        // Toggle desktop status popup
+        function toggleStatusPopupDesktop(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('status-popup-desktop');
             popup.classList.toggle('active');
         }
 
@@ -2592,12 +2615,21 @@
 
         // Close popups when clicking outside
         document.addEventListener('click', (e) => {
+            // Mobile status popup
             const statusPopup = document.getElementById('status-popup');
             const navDriveIcon = document.querySelector('.nav-drive-icon');
             if (statusPopup && !navDriveIcon?.contains(e.target)) {
                 statusPopup.classList.remove('active');
             }
 
+            // Desktop status popup
+            const statusPopupDesktop = document.getElementById('status-popup-desktop');
+            const navDriveButton = document.querySelector('.nav-drive-button');
+            if (statusPopupDesktop && !navDriveButton?.contains(e.target)) {
+                statusPopupDesktop.classList.remove('active');
+            }
+
+            // Mobile view dropdown
             const viewDropdown = document.getElementById('view-dropdown');
             const navViewDropdown = document.querySelector('.nav-view-dropdown');
             if (viewDropdown && !navViewDropdown?.contains(e.target)) {
