@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planification Instagram</title>
+    <title>zaPlanna</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://apis.google.com/js/api.js"></script>
@@ -215,6 +215,96 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+        }
+
+        /* Desktop/Mobile visibility */
+        .desktop-only {
+            display: flex;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        /* Desktop View Tabs */
+        .nav-view-tabs {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Desktop Drive Actions */
+        .nav-drive-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .nav-drive-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .nav-btn {
+            padding: 0.5rem 0.85rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Update add button for desktop */
+        .nav-add-btn {
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-add-btn:hover {
+            background: var(--secondary);
         }
 
         .view {
@@ -847,6 +937,15 @@
         }
 
         @media (max-width: 768px) {
+            /* Hide desktop navigation, show mobile */
+            .desktop-only {
+                display: none !important;
+            }
+
+            .mobile-only {
+                display: flex !important;
+            }
+
             .top-nav {
                 padding: 0.5rem 1rem;
                 gap: 0.5rem;
@@ -854,6 +953,12 @@
 
             .nav-brand-subtitle {
                 display: none;
+            }
+
+            /* Compact add button on mobile */
+            .nav-add-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 1rem;
             }
 
             .container {
@@ -961,9 +1066,36 @@
             zaPlanna <span class="nav-brand-subtitle">Posts pensés, cerveau repos</span>
         </div>
 
+        <!-- Desktop View Tabs (hidden on mobile) -->
+        <div class="nav-view-tabs desktop-only">
+            <button class="nav-tab active" data-view="calendar" onclick="switchView('calendar')">Calendrier</button>
+            <button class="nav-tab" data-view="list" onclick="switchView('list')">Liste</button>
+            <button class="nav-tab" data-view="themes" onclick="switchView('themes')">Thèmes</button>
+        </div>
+
         <div style="flex: 1;"></div>
 
-        <div class="nav-drive-icon" onclick="toggleStatusPopup(event)">
+        <!-- Desktop Drive Actions (hidden on mobile) -->
+        <div class="nav-drive-actions desktop-only">
+            <div class="nav-drive-status" id="nav-drive-status-desktop">
+                <div class="sync-indicator" id="sync-indicator-desktop"></div>
+                <span id="sync-status-text-desktop">Non connecté</span>
+            </div>
+
+            <!-- Not connected buttons -->
+            <button class="nav-btn" id="connect-btn-desktop" onclick="openConnectDialog()" style="display: block;">Connecter Drive</button>
+
+            <!-- Connected buttons -->
+            <button class="nav-btn" id="sync-btn-desktop" onclick="syncWithDrive()" style="display: none;">🔄 Sync</button>
+            <button class="nav-btn" id="export-btn-desktop" onclick="exportData()" style="display: none;">📥 Export</button>
+            <button class="nav-btn" id="import-btn-desktop" onclick="document.getElementById('import-file').click()" style="display: none;">📤 Import</button>
+            <button class="nav-btn" id="disconnect-btn-desktop" onclick="disconnectDrive()" style="display: none;">Déconnecter</button>
+
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+
+        <!-- Mobile Drive Icon & Dropdown (hidden on desktop) -->
+        <div class="nav-drive-icon mobile-only" onclick="toggleStatusPopup(event)">
             <div class="sync-indicator" id="sync-indicator"></div>
 
             <!-- Status Popup -->
@@ -983,12 +1115,12 @@
                         <button class="status-popup-btn" onclick="document.getElementById('import-file').click()">📤 Importer</button>
                         <button class="status-popup-btn" onclick="disconnectDrive()">🔌 Déconnecter</button>
                     </div>
-                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
                 </div>
             </div>
         </div>
 
-        <div class="nav-view-dropdown">
+        <!-- Mobile View Dropdown (hidden on desktop) -->
+        <div class="nav-view-dropdown mobile-only">
             <button class="nav-dropdown-btn" onclick="toggleViewDropdown(event)">
                 <span id="current-view-name">Calendrier</span>
                 <span>▼</span>
@@ -1000,7 +1132,7 @@
             </div>
         </div>
 
-        <button class="nav-add-btn" onclick="openAddPostModal()">+</button>
+        <button class="nav-add-btn" onclick="openAddPostModal()">+ Nouveau post</button>
     </div>
 
     <div class="container">
@@ -1234,8 +1366,50 @@
         }
 
         function showConnectedState() {
+            // Mobile popup
             document.getElementById('connection-section').style.display = 'none';
             document.getElementById('connected-section').style.display = 'block';
+
+            // Desktop buttons
+            const connectBtn = document.getElementById('connect-btn-desktop');
+            const syncBtn = document.getElementById('sync-btn-desktop');
+            const exportBtn = document.getElementById('export-btn-desktop');
+            const importBtn = document.getElementById('import-btn-desktop');
+            const disconnectBtn = document.getElementById('disconnect-btn-desktop');
+
+            if (connectBtn) connectBtn.style.display = 'none';
+            if (syncBtn) syncBtn.style.display = 'block';
+            if (exportBtn) exportBtn.style.display = 'block';
+            if (importBtn) importBtn.style.display = 'block';
+            if (disconnectBtn) disconnectBtn.style.display = 'block';
+        }
+
+        function showConnectionState() {
+            // Mobile popup
+            document.getElementById('connection-section').style.display = 'block';
+            document.getElementById('connected-section').style.display = 'none';
+
+            // Desktop buttons
+            const connectBtn = document.getElementById('connect-btn-desktop');
+            const syncBtn = document.getElementById('sync-btn-desktop');
+            const exportBtn = document.getElementById('export-btn-desktop');
+            const importBtn = document.getElementById('import-btn-desktop');
+            const disconnectBtn = document.getElementById('disconnect-btn-desktop');
+
+            if (connectBtn) connectBtn.style.display = 'block';
+            if (syncBtn) syncBtn.style.display = 'none';
+            if (exportBtn) exportBtn.style.display = 'none';
+            if (importBtn) importBtn.style.display = 'none';
+            if (disconnectBtn) disconnectBtn.style.display = 'none';
+        }
+
+        function openConnectDialog() {
+            // Prompt user for file ID
+            const fileId = prompt('Colle l\'ID ou l\'URL de ton fichier JSON sur Google Drive:');
+            if (fileId) {
+                document.getElementById('drive-file-id-input').value = fileId;
+                connectToFile();
+            }
         }
 
         function handleAuthClick() {
@@ -1355,17 +1529,39 @@
         }
 
         function updateSyncStatus(status, text) {
+            // Mobile indicator
             const indicator = document.getElementById('sync-indicator');
             const statusText = document.getElementById('sync-status-text');
 
-            indicator.className = 'sync-indicator';
-            if (status === 'connected') {
-                indicator.classList.add('connected');
-            } else if (status === 'syncing') {
-                indicator.classList.add('syncing');
+            if (indicator) {
+                indicator.className = 'sync-indicator';
+                if (status === 'connected') {
+                    indicator.classList.add('connected');
+                } else if (status === 'syncing') {
+                    indicator.classList.add('syncing');
+                }
             }
 
-            statusText.textContent = text;
+            if (statusText) {
+                statusText.textContent = text;
+            }
+
+            // Desktop indicator
+            const indicatorDesktop = document.getElementById('sync-indicator-desktop');
+            const statusTextDesktop = document.getElementById('sync-status-text-desktop');
+
+            if (indicatorDesktop) {
+                indicatorDesktop.className = 'sync-indicator';
+                if (status === 'connected') {
+                    indicatorDesktop.classList.add('connected');
+                } else if (status === 'syncing') {
+                    indicatorDesktop.classList.add('syncing');
+                }
+            }
+
+            if (statusTextDesktop) {
+                statusTextDesktop.textContent = text;
+            }
         }
 
         // Google Drive File Operations
@@ -1617,10 +1813,18 @@
             const post = data.posts.find(p => p.id === draggedPost);
 
             if (post && post.date) {
+                console.log('📍 Moving post back to sidebar:', post.title);
+                const oldDate = post.date;
                 post.date = null;
                 saveData();
-                renderThreeMonths();
-                renderList();
+
+                // Force immediate UI update using requestAnimationFrame
+                requestAnimationFrame(() => {
+                    console.log('🔄 Rendering after sidebar drop - post moved from', oldDate, 'to unscheduled');
+                    renderThreeMonths();
+                    renderList();
+                    console.log('✅ Render complete');
+                });
             }
 
             draggedPost = null;
@@ -1743,10 +1947,18 @@
             const post = data.posts.find(p => p.id === draggedPost);
 
             if (post) {
+                console.log('📍 Dropping post:', post.title, 'to date:', targetDate);
+                const oldDate = post.date;
                 post.date = targetDate;
                 saveData();
-                renderThreeMonths();
-                renderList();
+
+                // Force immediate UI update using requestAnimationFrame
+                requestAnimationFrame(() => {
+                    console.log('🔄 Rendering after drop - post moved from', oldDate, 'to', targetDate);
+                    renderThreeMonths();
+                    renderList();
+                    console.log('✅ Render complete');
+                });
             }
 
             draggedPost = null;
@@ -2351,17 +2563,28 @@
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewName + '-view').classList.add('active');
 
-            // Update dropdown items
+            // Update mobile dropdown items
             document.querySelectorAll('.nav-dropdown-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.view === viewName);
             });
 
-            // Update current view name
-            const viewNames = { calendar: 'Calendrier', list: 'Liste', themes: 'Thèmes' };
-            document.getElementById('current-view-name').textContent = viewNames[viewName];
+            // Update desktop tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.view === viewName);
+            });
 
-            // Close dropdown
-            document.getElementById('view-dropdown').classList.remove('active');
+            // Update mobile current view name
+            const currentViewName = document.getElementById('current-view-name');
+            if (currentViewName) {
+                const viewNames = { calendar: 'Calendrier', list: 'Liste', themes: 'Thèmes' };
+                currentViewName.textContent = viewNames[viewName];
+            }
+
+            // Close mobile dropdown
+            const viewDropdown = document.getElementById('view-dropdown');
+            if (viewDropdown) {
+                viewDropdown.classList.remove('active');
+            }
 
             // Save to localStorage
             localStorage.setItem('activeTab', viewName);
